@@ -48,7 +48,8 @@ const ProductDetail = () => {
         {/* --- HERO PRODUCT SECTION --- */}
         <div className="grid md:grid-cols-2 gap-12 lg:gap-24 items-start mb-24">
           {/* Left Column: Visuals */}
-          <div className="space-y-8 sticky top-24">
+          {/* FIXED: sticky only on md screens */}
+          <div className="space-y-8 md:sticky md:top-24">
             <div className="aspect-square bg-zinc-900 border border-white/10 rounded-none flex items-center justify-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-800 via-black to-black opacity-50"></div>
               <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
