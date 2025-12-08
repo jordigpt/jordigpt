@@ -5,14 +5,12 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
-import { CheckoutModal } from "@/components/checkout-modal";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const product = products.find((p) => p.id === id);
   const otherProducts = products.filter((p) => p.id !== id).slice(0, 2); // Show max 2 other products
   const [showSticky, setShowSticky] = useState(false);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -34,7 +32,8 @@ const ProductDetail = () => {
   }
 
   const handleCheckout = () => {
-    setIsCheckoutOpen(true);
+    console.log(`Iniciando checkout para: ${product.title}`);
+    alert("Redirigiendo a MercadoPago... (Simulación)");
   };
 
   return (
@@ -196,12 +195,6 @@ const ProductDetail = () => {
             </div>
           </section>
         )}
-
-        <CheckoutModal 
-            isOpen={isCheckoutOpen} 
-            onClose={() => setIsCheckoutOpen(false)} 
-            product={product} 
-        />
       </main>
       
       {/* --- MOBILE STICKY CTA --- */}
