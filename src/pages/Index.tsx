@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { products } from "@/data/products";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, Zap, CheckCircle2, Lock, XCircle } from "lucide-react";
+import { ArrowRight, Zap, CheckCircle2, Lock, XCircle, Star, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -10,8 +10,30 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Index = () => {
+  const testimonials = [
+    {
+      name: "Carlos M.",
+      role: "Freelancer",
+      content: "El script de n8n me ahorró literalmente $200 dólares al mes en suscripciones. Es absurdo que esta información sea casi gratis.",
+      initials: "CM"
+    },
+    {
+      name: "Sofia R.",
+      role: "Agencia de Marketing",
+      content: "Implementé el PLAN 1K un lunes. El jueves cerré mi primer cliente de $800. No es magia, es proceso puro.",
+      initials: "SR"
+    },
+    {
+      name: "David K.",
+      role: "Developer",
+      content: "Pensé que sabía de IA hasta que vi la suite de herramientas del pack de Google Pro. Jordi juega en otra liga.",
+      initials: "DK"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-neon selection:text-black font-sans">
       <Navbar />
@@ -102,8 +124,37 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <section className="py-24 bg-background border-t border-border">
+        <div className="container mx-auto px-4">
+           <h2 className="text-3xl font-bold text-foreground mb-12 text-center">INTELIGENCIA COLECTIVA</h2>
+           <div className="grid md:grid-cols-3 gap-6">
+             {testimonials.map((t, i) => (
+               <div key={i} className="bg-muted/30 border border-border p-6 rounded-lg relative">
+                 <Quote className="absolute top-6 right-6 text-neon/20 w-8 h-8" />
+                 <div className="flex items-center gap-3 mb-4">
+                   <Avatar>
+                     <AvatarFallback className="bg-neon text-black font-bold">{t.initials}</AvatarFallback>
+                   </Avatar>
+                   <div>
+                     <p className="font-bold text-foreground text-sm">{t.name}</p>
+                     <p className="text-xs text-muted-foreground">{t.role}</p>
+                   </div>
+                 </div>
+                 <div className="flex gap-1 mb-3">
+                   {[...Array(5)].map((_, i) => (
+                     <Star key={i} className="w-3 h-3 text-neon fill-neon" />
+                   ))}
+                 </div>
+                 <p className="text-muted-foreground text-sm leading-relaxed">"{t.content}"</p>
+               </div>
+             ))}
+           </div>
+        </div>
+      </section>
+
       {/* Products Grid */}
-      <section id="products" className="py-24 relative">
+      <section id="products" className="py-24 relative bg-muted/5 border-t border-border">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
             <div>
@@ -159,7 +210,7 @@ const Index = () => {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-24 border-t border-border bg-muted/5">
+      <section id="faq" className="py-24 border-t border-border">
         <div className="container mx-auto px-4 max-w-3xl">
           <h2 className="text-3xl font-bold text-foreground mb-12 text-center">PREGUNTAS FRECUENTES</h2>
           

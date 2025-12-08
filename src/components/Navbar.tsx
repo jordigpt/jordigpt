@@ -39,7 +39,7 @@ const Navbar = () => {
             </a>
           ))}
           <ModeToggle />
-          <Link to="/" className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground text-xs font-bold tracking-widest border border-border rounded uppercase transition-all hover:border-neon/50">
+          <Link to="/login" className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground text-xs font-bold tracking-widest border border-border rounded uppercase transition-all hover:border-neon/50">
             Login
           </Link>
         </div>
@@ -76,7 +76,7 @@ const Navbar = () => {
                     </SheetClose>
                   ))}
                   <SheetClose asChild>
-                    <Link to="/" className="text-lg font-medium text-muted-foreground hover:text-neon transition-colors">
+                    <Link to="/login" className="text-lg font-medium text-muted-foreground hover:text-neon transition-colors">
                       LOGIN
                     </Link>
                   </SheetClose>
