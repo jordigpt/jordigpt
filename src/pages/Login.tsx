@@ -1,23 +1,31 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Terminal, Lock, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import { Terminal } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Login = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const [session, setSession] = useState<any>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // Simulación de login
-    setTimeout(() => {
-      setIsLoading(false);
-      alert("Acceso concedido (Simulación)");
-    }, 2000);
-  };
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) navigate("/admin");
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) navigate("/admin");
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans flex flex-col">
@@ -44,51 +52,36 @@ const Login = () => {
 
             {/* Form */}
             <div className="p-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Identificador (Email)</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="email" type="email" placeholder="operador@jordigpt.com" className="pl-10 bg-background/50 border-input focus:border-neon/50 transition-colors" required />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Clave de Acceso</Label>
-                    <a href="#" className="text-xs text-neon hover:underline">¿Olvidaste la clave?</a>
-                  </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="password" type="password" placeholder="••••••••" className="pl-10 bg-background/50 border-input focus:border-neon/50 transition-colors" required />
-                  </div>
-                </div>
-
-                <Button type="submit" className="w-full bg-neon text-black hover:bg-neon/90 font-bold h-12 relative overflow-hidden group" disabled={isLoading}>
-                  {isLoading ? (
-                    <span className="flex items-center gap-2">
-                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></span>
-                      VERIFICANDO...
-                    </span>
-                  ) : (
-                    <>
-                      <span className="relative z-10">INICIAR SESIÓN</span>
-                      <div className="absolute inset-0 h-full w-full bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500 ease-in-out"></div>
-                    </>
-                  )}
-                </Button>
-              </form>
-
-              <div className="mt-6 text-center text-sm text-muted-foreground">
-                ¿No tienes acceso?{" "}
-                <Link to="/" className="text-foreground font-medium hover:text-neon transition-colors">
-                  Adquiere una licencia
-                </Link>
-              </div>
+              {!session ? (
+                <Auth
+                  supabaseClient={supabase}
+                  appearance={{
+                    theme: ThemeSupa,
+                    variables: {
+                      default: {
+                        colors: {
+                          brand: 'hsl(var(--primary))',
+                          brandAccent: 'hsl(var(--primary))',
+                          inputBackground: 'transparent',
+                          inputText: 'hsl(var(--foreground))',
+                          inputBorder: 'hsl(var(--border))',
+                        },
+                      },
+                    },
+                    className: {
+                      button: 'bg-neon text-black hover:bg-neon/90 font-bold',
+                      input: 'bg-background/50 border-input text-foreground',
+                    }
+                  }}
+                  providers={[]}
+                  theme="dark"
+                />
+              ) : (
+                <Alert>
+                   <AlertDescription>Ya has iniciado sesión. Redirigiendo...</AlertDescription>
+                </Alert>
+              )}
             </div>
-            
-            {/* Footer decoration */}
-            <div className="h-1 w-full bg-gradient-to-r from-transparent via-neon/50 to-transparent"></div>
           </div>
         </div>
       </div>

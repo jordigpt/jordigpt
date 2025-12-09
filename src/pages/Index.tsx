@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
-import { products } from "@/data/products";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, Zap, CheckCircle2, Lock, XCircle, Star, Quote } from "lucide-react";
+import { ArrowRight, Zap, CheckCircle2, Lock, XCircle, Star, Quote, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -12,7 +13,52 @@ import {
 } from "@/components/ui/accordion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
+// Import Product interface from static file for type safety if we want, or redefine.
+// We'll redefine loosely based on DB schema.
+interface Product {
+  id: string;
+  title: string;
+  short_description: string;
+  full_description: string;
+  price: number;
+  features: string[];
+  cta_text: string;
+  is_free: boolean;
+  image_url?: string;
+  badge?: string;
+  original_price_label?: string;
+  original_price_display?: string;
+  price_display: string;
+  price_microcopy: string;
+  is_featured?: boolean;
+  image_type?: string;
+}
+
 const Index = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('is_featured', { ascending: false }) // Featured first? Or created_at? Let's assume order by featured then creation.
+        .order('created_at', { ascending: false }); // Fallback sort
+      
+      if (!error && data) {
+         // Sort manually to match the exact "featured first" if needed, 
+         // but 'order' in sql should work if boolean maps correctly (true > false is DESC usually)
+         // Let's rely on JS sort to be safe for featured on top
+         const sorted = [...data].sort((a, b) => (Number(b.is_featured) - Number(a.is_featured)));
+         setProducts(sorted);
+      }
+      setLoading(false);
+    };
+
+    fetchProducts();
+  }, []);
+
   const testimonials = [
     {
       name: "Carlos M.",
@@ -188,70 +234,73 @@ const Index = () => {
       {/* Products Grid */}
       <section id="products" className="py-24 relative bg-muted/5 border-t border-border">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col items-center mb-16 text-center max-w-2xl mx-auto">
-             <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">EL ARSENAL</h2>
-             <p className="text-muted-foreground text-lg mb-2">Guías tácticas y sistemas listos para usar. Elegí una, aplicala esta semana y empezá a ver resultados en tu cuenta, no solo en tus ideas.</p>
-             <p className="text-xs text-muted-foreground/60 uppercase tracking-widest font-medium">Todo es pago único, acceso inmediato y de por vida. Sin suscripciones, sin plataformas raras.</p>
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">EL ARSENAL</h2>
+              <p className="text-muted-foreground">Herramientas tácticas para tu crecimiento.</p>
+            </div>
+            <div className="h-1 w-full md:w-auto flex-1 bg-border mx-4 self-center"></div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-            {products.map((product) => (
-              <div 
-                key={product.id} 
-                className={`group relative bg-card border flex flex-col h-full rounded-md transition-all duration-300 ${product.isFeatured ? 'border-neon shadow-[0_0_30px_rgba(212,232,58,0.15)] md:-mt-8 z-10' : 'border-border hover:border-neon/50'}`}
-              >
-                {product.badge && (
-                  <div className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1 text-xs font-bold uppercase tracking-wider rounded-sm shadow-md ${product.isFeatured ? 'bg-neon text-black' : 'bg-muted-foreground text-white'}`}>
-                    {product.badge}
-                  </div>
-                )}
+          {loading ? (
+             <div className="flex justify-center py-20">
+                <Loader2 className="w-10 h-10 animate-spin text-neon" />
+             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {products.map((product) => (
+                <Link 
+                    key={product.id} 
+                    to={`/product/${product.id}`}
+                    className="group relative bg-card border border-border overflow-hidden hover:border-neon/50 transition-all duration-300 flex flex-col h-full rounded-md"
+                >
+                    {/* Image Placeholder area */}
+                    <div className="h-48 bg-muted/50 flex items-center justify-center border-b border-border group-hover:bg-muted transition-colors relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-background/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    
+                    {product.image_url ? (
+                        <img src={product.image_url} alt={product.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                    ) : (
+                        <>
+                            {(product.image_type === 'chart-line-up' || !product.image_type) && <Zap className="w-16 h-16 text-muted-foreground/50 group-hover:text-neon transition-colors duration-500 group-hover:scale-110 transform" />}
+                            {product.image_type === 'infinity' && <div className="text-6xl font-bold text-muted-foreground/50 group-hover:text-neon transition-colors duration-500 group-hover:scale-110 transform">∞</div>}
+                            {product.image_type === 'unlock' && <Lock className="w-16 h-16 text-muted-foreground/50 group-hover:text-neon transition-colors duration-500 group-hover:scale-110 transform" />}
+                        </>
+                    )}
+                    
+                    {(product.is_free) && (
+                        <div className="absolute top-4 right-4 bg-neon text-black text-xs font-bold px-2 py-1 uppercase shadow-[0_0_10px_rgba(212,232,58,0.5)]">
+                        Gratis
+                        </div>
+                    )}
+                    {(product.badge) && (
+                         <div className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1 text-xs font-bold uppercase tracking-wider rounded-sm shadow-md ${product.is_featured ? 'bg-neon text-black' : 'bg-muted-foreground text-white'}`}>
+                            {product.badge}
+                         </div>
+                    )}
+                    </div>
 
-                <Link to={`/product/${product.id}`} className="block overflow-hidden relative border-b border-border/50">
-                    <div className={`h-48 flex items-center justify-center transition-colors relative ${product.isFeatured ? 'bg-neon/5' : 'bg-muted/20 group-hover:bg-muted/40'}`}>
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-background/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                      
-                      {product.image === 'chart-line-up' && <Zap className={`w-20 h-20 transition-all duration-500 transform group-hover:scale-110 ${product.isFeatured ? 'text-neon drop-shadow-[0_0_15px_rgba(212,232,58,0.5)]' : 'text-muted-foreground/50 group-hover:text-neon'}`} />}
-                      {product.image === 'infinity' && <div className="text-7xl font-bold text-muted-foreground/50 group-hover:text-neon transition-colors duration-500 group-hover:scale-110 transform">∞</div>}
-                      {product.image === 'unlock' && <Lock className="w-20 h-20 text-muted-foreground/50 group-hover:text-neon transition-colors duration-500 group-hover:scale-110 transform" />}
+                    <div className="p-6 flex flex-col flex-1">
+                    <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-neon transition-colors">
+                        {product.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mb-6 line-clamp-3">
+                        {product.short_description}
+                    </p>
+                    
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-border">
+                        <span className="text-lg font-mono font-medium text-foreground">
+                        {product.price_display || (product.price === 0 ? "FREE" : `$${product.price} USD`)}
+                        </span>
+                        <span className="text-neon text-sm font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                        ACCEDER <ArrowRight className="w-4 h-4" />
+                        </span>
+                    </div>
                     </div>
                 </Link>
-
-                <div className="p-6 flex flex-col flex-1">
-                  <Link to={`/product/${product.id}`} className="block">
-                      <h3 className={`text-xl font-bold mb-3 transition-colors ${product.isFeatured ? 'text-neon' : 'text-foreground group-hover:text-neon'}`}>
-                        {product.title}
-                      </h3>
-                  </Link>
-                  <p className="text-muted-foreground text-sm mb-8 leading-relaxed">
-                    {product.shortDescription}
-                  </p>
-                  
-                  <div className="mt-auto space-y-4">
-                    {/* Pricing Block */}
-                    <div className="pt-4 border-t border-border/50">
-                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{product.originalPriceLabel}</span>
-                          <span className={`decoration-muted-foreground/60 ${product.isFree ? '' : 'line-through'}`}>{product.originalPriceDisplay}</span>
-                       </div>
-                       <div className="flex items-center gap-2 mt-1 mb-2">
-                          <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">HOY:</span>
-                          <span className={`text-2xl font-mono font-bold ${product.isFeatured ? 'text-neon' : 'text-foreground'}`}>{product.priceDisplay}</span>
-                       </div>
-                       <p className="text-[10px] text-muted-foreground leading-tight min-h-[2.5em]">
-                          {product.priceMicrocopy}
-                       </p>
-                    </div>
-
-                    <Link to={`/product/${product.id}`}>
-                        <Button className={`w-full font-bold uppercase tracking-wider group-hover:translate-y-[-2px] transition-all duration-300 ${product.isFeatured ? 'bg-neon text-black hover:bg-neon/90 shadow-[0_4px_14px_0_rgba(212,232,58,0.39)]' : 'bg-transparent border border-neon text-neon hover:bg-neon hover:text-black'}`}>
-                            {product.ctaText} <ArrowRight className="ml-2 w-4 h-4" />
-                        </Button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                ))}
+            </div>
+          )}
         </div>
       </section>
 

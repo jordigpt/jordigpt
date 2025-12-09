@@ -1,16 +1,69 @@
 import { useParams, Link, Navigate } from "react-router-dom";
-import { products } from "@/data/products";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2 } from "lucide-react";
+
+interface Product {
+  id: string;
+  title: string;
+  short_description: string;
+  full_description: string;
+  price: number;
+  features: string[];
+  cta_text: string;
+  is_free: boolean;
+  image_url: string;
+  badge: string;
+  original_price_label: string;
+  original_price_display: string;
+  price_display: string;
+  price_microcopy: string;
+  is_featured: boolean;
+  image_type: string;
+}
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const product = products.find((p) => p.id === id);
-  const otherProducts = products.filter((p) => p.id !== id).slice(0, 2); // Show max 2 other products
+  const [product, setProduct] = useState<Product | null>(null);
+  const [otherProducts, setOtherProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showSticky, setShowSticky] = useState(false);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+        if(!id) return;
+        setLoading(true);
+
+        // Fetch current product
+        const { data: currentProduct, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error || !currentProduct) {
+            setLoading(false);
+            return;
+        }
+        
+        setProduct(currentProduct);
+
+        // Fetch recommendations (random 2 or simple limit)
+        const { data: others } = await supabase
+            .from('products')
+            .select('*')
+            .neq('id', id)
+            .limit(2);
+        
+        if (others) setOtherProducts(others);
+        setLoading(false);
+    };
+
+    fetchProduct();
+  }, [id]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -26,6 +79,14 @@ const ProductDetail = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [id]);
+
+  if (loading) {
+      return (
+          <div className="min-h-screen flex items-center justify-center bg-background">
+              <Loader2 className="w-8 h-8 animate-spin text-neon" />
+          </div>
+      );
+  }
 
   if (!product) {
     return <Navigate to="/" replace />;
@@ -48,20 +109,23 @@ const ProductDetail = () => {
         {/* --- HERO PRODUCT SECTION --- */}
         <div className="grid md:grid-cols-2 gap-12 lg:gap-24 items-start mb-24">
           {/* Left Column: Visuals */}
-          {/* FIXED: sticky only on md screens */}
           <div className="space-y-8 md:sticky md:top-24">
             <div className="aspect-square bg-card border border-border rounded-none flex items-center justify-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-muted/50 via-background to-background opacity-50"></div>
               <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
               
-              <div className="relative z-10 text-center p-8 transform group-hover:scale-105 transition-transform duration-700">
-                 <h1 className="text-5xl md:text-7xl font-bold text-foreground/5 group-hover:text-neon/10 transition-colors duration-500 select-none tracking-tighter">
-                    {product.title.split(' ')[0]}
-                 </h1>
-                 {product.image === 'chart-line-up' && <Zap className="w-32 h-32 mx-auto text-neon mt-4 drop-shadow-[0_0_25px_rgba(212,232,58,0.6)] animate-pulse-glow" />}
-                 {product.image === 'infinity' && <div className="text-8xl font-bold text-neon mt-4 drop-shadow-[0_0_25px_rgba(212,232,58,0.6)] animate-pulse-glow">∞</div>}
-                 {product.image === 'unlock' && <Lock className="w-32 h-32 mx-auto text-neon mt-4 drop-shadow-[0_0_25px_rgba(212,232,58,0.6)] animate-pulse-glow" />}
-              </div>
+              {product.image_url ? (
+                  <img src={product.image_url} alt={product.title} className="w-full h-full object-cover relative z-10" />
+              ) : (
+                <div className="relative z-10 text-center p-8 transform group-hover:scale-105 transition-transform duration-700">
+                    <h1 className="text-5xl md:text-7xl font-bold text-foreground/5 group-hover:text-neon/10 transition-colors duration-500 select-none tracking-tighter">
+                        {product.title.split(' ')[0]}
+                    </h1>
+                    {(product.image_type === 'chart-line-up' || !product.image_type) && <Zap className="w-32 h-32 mx-auto text-neon mt-4 drop-shadow-[0_0_25px_rgba(212,232,58,0.6)] animate-pulse-glow" />}
+                    {product.image_type === 'infinity' && <div className="text-8xl font-bold text-neon mt-4 drop-shadow-[0_0_25px_rgba(212,232,58,0.6)] animate-pulse-glow">∞</div>}
+                    {product.image_type === 'unlock' && <Lock className="w-32 h-32 mx-auto text-neon mt-4 drop-shadow-[0_0_25px_rgba(212,232,58,0.6)] animate-pulse-glow" />}
+                </div>
+              )}
             </div>
 
             <div className="bg-card/30 p-6 border border-border flex gap-4 items-start backdrop-blur-sm rounded-md">
@@ -79,7 +143,7 @@ const ProductDetail = () => {
           <div className="space-y-8">
             <div>
               <div className="flex items-center gap-4 mb-6">
-                {product.isFree ? (
+                {product.is_free ? (
                   <span className="bg-neon text-black text-xs font-bold px-3 py-1 uppercase tracking-widest">
                     Regalo Exclusivo
                   </span>
@@ -96,18 +160,18 @@ const ProductDetail = () => {
               
               <div className="flex items-baseline gap-3 mb-8">
                 <span className="text-4xl font-mono text-neon font-bold">
-                  {product.price === 0 ? "GRATIS" : `$${product.price} USD`}
+                  {product.price_display || (product.price === 0 ? "GRATIS" : `$${product.price} USD`)}
                 </span>
-                {!product.isFree && (
+                {!product.is_free && product.original_price_display && (
                   <span className="text-muted-foreground line-through text-xl decoration-neon/50">
-                    ${(product.price * 2).toFixed(2)}
+                    {product.original_price_display}
                   </span>
                 )}
               </div>
 
               <div className="prose prose-invert max-w-none">
                 <p className="text-foreground/80 text-lg leading-relaxed mb-8 border-l-4 border-neon pl-6 italic">
-                  "{product.fullDescription}"
+                  "{product.full_description}"
                 </p>
               </div>
             </div>
@@ -115,7 +179,7 @@ const ProductDetail = () => {
             <div className="space-y-6 bg-card/20 p-6 border border-border rounded-lg">
                <h3 className="text-foreground font-bold uppercase tracking-wider text-sm border-b border-border pb-2">Lo que obtienes dentro:</h3>
                <ul className="space-y-4">
-                 {product.features.map((feature, idx) => (
+                 {product.features?.map((feature, idx) => (
                    <li key={idx} className="flex items-start gap-3 text-foreground/80">
                      <div className="bg-neon/10 p-1 rounded-full mt-0.5">
                        <Check className="text-neon w-3 h-3 flex-shrink-0" />
@@ -131,7 +195,7 @@ const ProductDetail = () => {
                 onClick={handleCheckout}
                 className="w-full bg-neon text-black hover:bg-neon/90 hover:scale-[1.01] font-bold text-xl py-8 rounded-sm transition-all shadow-[0_0_20px_rgba(212,232,58,0.2)] hover:shadow-[0_0_40px_rgba(212,232,58,0.5)] active:scale-[0.98]"
               >
-                {product.ctaText} <ArrowRight className="ml-2 w-6 h-6" />
+                {product.cta_text} <ArrowRight className="ml-2 w-6 h-6" />
               </Button>
               <div className="flex items-center justify-center gap-4 mt-4 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
                  {/* Fake Trust Badges */}
@@ -178,10 +242,16 @@ const ProductDetail = () => {
             <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
               {otherProducts.map((p) => (
                 <Link key={p.id} to={`/product/${p.id}`} className="group flex bg-card border border-border hover:border-neon/40 transition-all p-4 items-center gap-4 rounded-md">
-                  <div className="w-16 h-16 bg-muted flex items-center justify-center flex-shrink-0 text-muted-foreground/50 group-hover:text-neon transition-colors rounded-sm">
-                     {p.image === 'chart-line-up' && <Zap className="w-8 h-8" />}
-                     {p.image === 'infinity' && <div className="text-2xl font-bold">∞</div>}
-                     {p.image === 'unlock' && <Lock className="w-8 h-8" />}
+                  <div className="w-16 h-16 bg-muted flex items-center justify-center flex-shrink-0 text-muted-foreground/50 group-hover:text-neon transition-colors rounded-sm overflow-hidden relative">
+                     {p.image_url ? (
+                        <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" />
+                     ) : (
+                         <>
+                            {(p.image_type === 'chart-line-up' || !p.image_type) && <Zap className="w-8 h-8" />}
+                            {p.image_type === 'infinity' && <div className="text-2xl font-bold">∞</div>}
+                            {p.image_type === 'unlock' && <Lock className="w-8 h-8" />}
+                         </>
+                     )}
                   </div>
                   <div>
                     <h4 className="font-bold text-foreground group-hover:text-neon transition-colors">{p.title}</h4>
@@ -207,7 +277,7 @@ const ProductDetail = () => {
                   <span className="text-lg font-mono text-neon font-bold">{product.price === 0 ? "GRATIS" : `$${product.price}`}</span>
               </div>
               <Button onClick={handleCheckout} size="sm" className="bg-neon text-black font-bold hover:bg-neon/90 rounded-none px-6">
-                  {product.ctaText}
+                  {product.cta_text}
               </Button>
           </div>
       </div>
