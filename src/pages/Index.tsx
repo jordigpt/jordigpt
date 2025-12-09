@@ -114,7 +114,7 @@ const Index = () => {
             <a href="#products">
               <ButtonColorful 
                 label="ACCEDER AL ARSENAL ⚡" 
-                className="w-full sm:w-auto h-auto px-8 py-6 text-lg rounded-none hover:scale-105 transition-transform"
+                className="w-full sm:w-auto h-auto px-8 py-6 text-lg hover:scale-105 transition-transform"
               />
             </a>
             <div className="flex flex-wrap justify-center gap-3 mt-4">
