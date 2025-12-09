@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowRight, Zap, CheckCircle2, Lock, XCircle, Star, Quote, Loader2, Timer, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ButtonColorful } from "@/components/ui/button-colorful";
 import {
   Accordion,
   AccordionContent,
@@ -111,9 +112,10 @@ const Index = () => {
           
           <div className="flex flex-col items-center gap-4">
             <a href="#products">
-              <Button className="bg-neon text-black hover:bg-neon/80 font-bold text-lg px-8 py-6 h-auto rounded-none border border-transparent hover:border-foreground/20 transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(212,232,58,0.4)]">
-                ACCEDER AL ARSENAL ⚡
-              </Button>
+              <ButtonColorful 
+                label="ACCEDER AL ARSENAL ⚡" 
+                className="w-full sm:w-auto h-auto px-8 py-6 text-lg rounded-none hover:scale-105 transition-transform"
+              />
             </a>
             <div className="flex flex-wrap justify-center gap-3 mt-4">
               <span className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-[10px] border border-border">+1500 implementadores</span>
