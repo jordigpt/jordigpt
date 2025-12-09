@@ -103,7 +103,7 @@ const Index = () => {
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-4 leading-relaxed">
-            Accedé a mi arsenal de guías, sistemas y plantillas IA (como PLAN 1K) para convertir chats, automatizaciones y apps en ingresos reales. Sin humo, sin teoría vieja: solo lo que ya usé para facturar.
+            Guías y sistemas IA probados (como PLAN 1K) para que tus ideas y habilidades se vuelvan ingresos reales.
           </p>
 
           <p className="text-sm font-medium text-foreground/80 mb-10">
