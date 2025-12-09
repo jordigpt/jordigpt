@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Timer, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface Product {
   id: string;
@@ -32,6 +33,7 @@ const ProductDetail = () => {
   const [otherProducts, setOtherProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSticky, setShowSticky] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -80,8 +82,38 @@ const ProductDetail = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-neon" /></div>;
   if (!product) return <Navigate to="/" replace />;
 
-  const handleCheckout = () => {
-    alert("Iniciando checkout (Simulación)");
+  const handleCheckout = async () => {
+    if (!product) return;
+
+    // Si es gratis, lógica directa (por ahora alert, luego descarga)
+    if (product.is_free) {
+        toast.success("¡Producto gratuito! Iniciando descarga...");
+        return;
+    }
+
+    try {
+        setIsProcessing(true);
+        toast.info("Conectando con pasarela de pago...");
+
+        const { data, error } = await supabase.functions.invoke('create-checkout', {
+            body: { productId: product.id }
+        });
+
+        if (error) throw new Error(error.message);
+        if (data?.error) throw new Error(data.error);
+
+        if (data?.url) {
+            window.location.href = data.url;
+        } else {
+            throw new Error("No se recibió URL de pago");
+        }
+
+    } catch (error: any) {
+        console.error("Checkout error:", error);
+        toast.error("Error al iniciar pago: " + (error.message || "Intente nuevamente"));
+    } finally {
+        setIsProcessing(false);
+    }
   };
 
   return (
@@ -175,9 +207,12 @@ const ProductDetail = () => {
 
                <Button 
                 onClick={handleCheckout}
-                className="w-full bg-neon text-black hover:bg-neon/90 hover:scale-[1.01] font-bold text-xl h-16 rounded-lg transition-all shadow-[0_0_25px_rgba(212,232,58,0.3)] hover:shadow-[0_0_40px_rgba(212,232,58,0.6)] active:scale-[0.98] uppercase tracking-wide"
+                disabled={isProcessing}
+                className="w-full bg-neon text-black hover:bg-neon/90 hover:scale-[1.01] font-bold text-xl h-16 rounded-lg transition-all shadow-[0_0_25px_rgba(212,232,58,0.3)] hover:shadow-[0_0_40px_rgba(212,232,58,0.6)] active:scale-[0.98] uppercase tracking-wide disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {product.cta_text} <ArrowRight className="ml-2 w-6 h-6" />
+                {isProcessing ? <Loader2 className="animate-spin mr-2" /> : null}
+                {isProcessing ? "Procesando..." : product.cta_text} 
+                {!isProcessing && <ArrowRight className="ml-2 w-6 h-6" />}
               </Button>
               
               <div className="flex justify-center gap-6 mt-6 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
@@ -265,8 +300,13 @@ const ProductDetail = () => {
                   <span className="text-[10px] text-muted-foreground font-bold uppercase truncate max-w-[120px]">{product.title}</span>
                   <span className="text-xl font-mono text-neon font-black">{product.price === 0 ? "GRATIS" : `$${product.price}`}</span>
               </div>
-              <Button onClick={handleCheckout} size="sm" className="bg-neon text-black font-bold hover:bg-neon/90 rounded-md px-6 shadow-[0_0_15px_rgba(212,232,58,0.4)]">
-                  {product.cta_text}
+              <Button 
+                onClick={handleCheckout} 
+                disabled={isProcessing}
+                size="sm" 
+                className="bg-neon text-black font-bold hover:bg-neon/90 rounded-md px-6 shadow-[0_0_15px_rgba(212,232,58,0.4)] disabled:opacity-70"
+              >
+                 {isProcessing ? <Loader2 className="animate-spin" /> : product.cta_text}
               </Button>
           </div>
       </div>
