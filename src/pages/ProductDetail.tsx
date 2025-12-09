@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Timer, Star } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface Product {
   id: string;
@@ -37,7 +38,6 @@ const ProductDetail = () => {
         if(!id) return;
         setLoading(true);
 
-        // Fetch current product
         const { data: currentProduct, error } = await supabase
             .from('products')
             .select('*')
@@ -51,7 +51,6 @@ const ProductDetail = () => {
         
         setProduct(currentProduct);
 
-        // Fetch recommendations (random 2 or simple limit)
         const { data: others } = await supabase
             .from('products')
             .select('*')
@@ -67,7 +66,6 @@ const ProductDetail = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    
     const handleScroll = () => {
       const heroSection = document.getElementById('hero-action');
       if (heroSection) {
@@ -75,26 +73,15 @@ const ProductDetail = () => {
         setShowSticky(rect.bottom < 0);
       }
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [id]);
 
-  if (loading) {
-      return (
-          <div className="min-h-screen flex items-center justify-center bg-background">
-              <Loader2 className="w-8 h-8 animate-spin text-neon" />
-          </div>
-      );
-  }
-
-  if (!product) {
-    return <Navigate to="/" replace />;
-  }
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-neon" /></div>;
+  if (!product) return <Navigate to="/" replace />;
 
   const handleCheckout = () => {
-    console.log(`Iniciando checkout para: ${product.title}`);
-    alert("Redirigiendo a MercadoPago... (Simulación)");
+    alert("Iniciando checkout (Simulación)");
   };
 
   return (
@@ -102,163 +89,165 @@ const ProductDetail = () => {
       <Navbar />
 
       <main className="pt-32 pb-12 container mx-auto px-4">
-        <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-neon mb-8 transition-colors">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Volver al arsenal
+        <Link to="/" className="inline-flex items-center text-muted-foreground hover:text-neon mb-8 transition-colors text-sm font-medium">
+          <ArrowLeft className="w-4 h-4 mr-2" /> VOLVER AL ARSENAL
         </Link>
 
         {/* --- HERO PRODUCT SECTION --- */}
-        <div className="grid md:grid-cols-2 gap-12 lg:gap-24 items-start mb-24">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start mb-24">
+          
           {/* Left Column: Visuals */}
-          <div className="space-y-8 md:sticky md:top-24">
-            <div className="aspect-square bg-card border border-border rounded-none flex items-center justify-center relative overflow-hidden group">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-muted/50 via-background to-background opacity-50"></div>
-              <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
-              
+          <div className="space-y-6 lg:sticky lg:top-24">
+            <div className="aspect-[4/3] rounded-xl overflow-hidden border border-border relative bg-muted group shadow-2xl shadow-neon/5">
               {product.image_url ? (
-                  <img src={product.image_url} alt={product.title} className="w-full h-full object-cover relative z-10" />
+                  <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" />
               ) : (
-                <div className="relative z-10 text-center p-8 transform group-hover:scale-105 transition-transform duration-700">
-                    <h1 className="text-5xl md:text-7xl font-bold text-foreground/5 group-hover:text-neon/10 transition-colors duration-500 select-none tracking-tighter">
-                        {product.title.split(' ')[0]}
-                    </h1>
-                    {(product.image_type === 'chart-line-up' || !product.image_type) && <Zap className="w-32 h-32 mx-auto text-neon mt-4 drop-shadow-[0_0_25px_rgba(212,232,58,0.6)] animate-pulse-glow" />}
-                    {product.image_type === 'infinity' && <div className="text-8xl font-bold text-neon mt-4 drop-shadow-[0_0_25px_rgba(212,232,58,0.6)] animate-pulse-glow">∞</div>}
-                    {product.image_type === 'unlock' && <Lock className="w-32 h-32 mx-auto text-neon mt-4 drop-shadow-[0_0_25px_rgba(212,232,58,0.6)] animate-pulse-glow" />}
+                <div className="w-full h-full flex items-center justify-center bg-card">
+                    {(product.image_type === 'chart-line-up' || !product.image_type) && <Zap className="w-32 h-32 text-neon animate-pulse-glow" />}
+                    {product.image_type === 'infinity' && <div className="text-9xl font-bold text-neon animate-pulse-glow">∞</div>}
+                    {product.image_type === 'unlock' && <Lock className="w-32 h-32 text-neon animate-pulse-glow" />}
                 </div>
               )}
+              {/* Overlay Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent pointer-events-none lg:hidden"></div>
             </div>
 
-            <div className="bg-card/30 p-6 border border-border flex gap-4 items-start backdrop-blur-sm rounded-md">
-              <ShieldCheck className="text-neon w-8 h-8 flex-shrink-0" />
-              <div>
-                <h4 className="font-bold text-foreground mb-1 text-sm uppercase tracking-wide">Garantía JordiGPT</h4>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Contenido verificado. Sin relleno. Si la técnica deja de funcionar por cambios en la plataforma, actualizo el material gratis para todos los compradores.
-                </p>
-              </div>
+            <div className="flex gap-4 items-center justify-center text-xs text-muted-foreground border border-border p-4 rounded-lg bg-card/50">
+              <ShieldCheck className="text-neon w-5 h-5" />
+              <span>Garantía de contenido actualizado 2025</span>
+              <div className="w-px h-4 bg-border"></div>
+              <span>Acceso de por vida</span>
             </div>
           </div>
 
-          {/* Right Column: Copy & Checkout */}
-          <div className="space-y-8">
-            <div>
-              <div className="flex items-center gap-4 mb-6">
-                {product.is_free ? (
-                  <span className="bg-neon text-black text-xs font-bold px-3 py-1 uppercase tracking-widest">
-                    Regalo Exclusivo
-                  </span>
-                ) : (
-                  <span className="bg-muted text-neon text-xs font-bold px-3 py-1 uppercase border border-neon/20 tracking-widest shadow-[0_0_10px_rgba(212,232,58,0.2)]">
-                    Producto Premium
-                  </span>
-                )}
-              </div>
-              
-              <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-none tracking-tight">
-                {product.title}
-              </h1>
-              
-              <div className="flex items-baseline gap-3 mb-8">
-                <span className="text-4xl font-mono text-neon font-bold">
-                  {product.price_display || (product.price === 0 ? "GRATIS" : `$${product.price} USD`)}
-                </span>
-                {!product.is_free && product.original_price_display && (
-                  <span className="text-muted-foreground line-through text-xl decoration-neon/50">
-                    {product.original_price_display}
-                  </span>
-                )}
-              </div>
+          {/* Right Column: Copy & Pricing */}
+          <div className="flex flex-col">
+            <div className="mb-6">
+               <div className="flex items-center gap-3 mb-4">
+                  {product.is_free ? (
+                    <Badge className="bg-neon text-black hover:bg-neon border-none text-xs px-3 py-1">REGALO EXCLUSIVO</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-neon border-neon/50 text-xs px-3 py-1 bg-neon/5">SISTEMA PREMIUM</Badge>
+                  )}
+                  {product.is_featured && <span className="flex items-center text-xs text-muted-foreground"><Star className="w-3 h-3 mr-1 text-neon fill-neon"/> Más vendido</span>}
+               </div>
+               
+               <h1 className="text-4xl md:text-6xl font-black text-foreground mb-6 leading-[0.9] tracking-tighter uppercase">
+                 {product.title}
+               </h1>
+               
+               <div className="prose prose-invert prose-lg max-w-none mb-8">
+                 <p className="text-foreground/80 leading-relaxed text-lg border-l-2 border-neon pl-4">
+                   {product.full_description}
+                 </p>
+               </div>
+            </div>
 
-              <div className="prose prose-invert max-w-none">
-                <p className="text-foreground/80 text-lg leading-relaxed mb-8 border-l-4 border-neon pl-6 italic">
-                  "{product.full_description}"
-                </p>
+            {/* --- PRICING BOX --- */}
+            <div className="bg-card border border-border rounded-xl p-6 md:p-8 shadow-xl relative overflow-hidden group" id="hero-action">
+               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-neon to-transparent opacity-50"></div>
+               
+               <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+                  <div>
+                      <p className="text-sm text-muted-foreground font-medium mb-1">Precio total hoy:</p>
+                      <div className="flex items-baseline gap-3 flex-wrap">
+                        {product.original_price_display && !product.is_free && (
+                            <span className="text-xl text-muted-foreground/60 line-through decoration-destructive/50 font-mono">
+                                {product.original_price_display}
+                            </span>
+                        )}
+                        <span className="text-5xl font-black text-foreground font-mono tracking-tight">
+                            {product.price_display || (product.price === 0 ? "GRATIS" : `$${product.price}`)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-neon mt-2 font-medium flex items-center gap-1.5">
+                          <Timer className="w-3 h-3" /> {product.price_microcopy}
+                      </p>
+                  </div>
+                  
+                  {/* Discount Badge */}
+                  {product.original_price_display && !product.is_free && (
+                     <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider animate-pulse">
+                        Oferta Limitada
+                     </div>
+                  )}
+               </div>
+
+               <Button 
+                onClick={handleCheckout}
+                className="w-full bg-neon text-black hover:bg-neon/90 hover:scale-[1.01] font-bold text-xl h-16 rounded-lg transition-all shadow-[0_0_25px_rgba(212,232,58,0.3)] hover:shadow-[0_0_40px_rgba(212,232,58,0.6)] active:scale-[0.98] uppercase tracking-wide"
+              >
+                {product.cta_text} <ArrowRight className="ml-2 w-6 h-6" />
+              </Button>
+              
+              <div className="flex justify-center gap-6 mt-6 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
+                 <span>🔒 Pago Seguro</span>
+                 <span>⚡ Entrega Inmediata</span>
               </div>
             </div>
 
-            <div className="space-y-6 bg-card/20 p-6 border border-border rounded-lg">
-               <h3 className="text-foreground font-bold uppercase tracking-wider text-sm border-b border-border pb-2">Lo que obtienes dentro:</h3>
-               <ul className="space-y-4">
+            {/* Features List */}
+            <div className="mt-12">
+               <h3 className="text-sm font-bold text-foreground uppercase tracking-widest mb-6">Lo que incluye el sistema:</h3>
+               <ul className="grid gap-4">
                  {product.features?.map((feature, idx) => (
-                   <li key={idx} className="flex items-start gap-3 text-foreground/80">
-                     <div className="bg-neon/10 p-1 rounded-full mt-0.5">
-                       <Check className="text-neon w-3 h-3 flex-shrink-0" />
+                   <li key={idx} className="flex items-start gap-3 p-4 rounded-lg bg-muted/20 border border-border/50">
+                     <div className="bg-neon/10 p-1 rounded-full mt-0.5 shrink-0">
+                       <Check className="text-neon w-4 h-4" />
                      </div>
-                     <span className="text-sm md:text-base">{feature}</span>
+                     <span className="text-sm md:text-base font-medium text-foreground/90">{feature}</span>
                    </li>
                  ))}
                </ul>
             </div>
-
-            <div className="pt-8" id="hero-action">
-              <Button 
-                onClick={handleCheckout}
-                className="w-full bg-neon text-black hover:bg-neon/90 hover:scale-[1.01] font-bold text-xl py-8 rounded-sm transition-all shadow-[0_0_20px_rgba(212,232,58,0.2)] hover:shadow-[0_0_40px_rgba(212,232,58,0.5)] active:scale-[0.98]"
-              >
-                {product.cta_text} <ArrowRight className="ml-2 w-6 h-6" />
-              </Button>
-              <div className="flex items-center justify-center gap-4 mt-4 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
-                 {/* Fake Trust Badges */}
-                 <div className="text-[10px] text-muted-foreground uppercase tracking-widest flex gap-4">
-                    <span>🔒 Pago Seguro SSL</span>
-                    <span>⚡ Entrega Inmediata</span>
-                 </div>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* --- WHO IS THIS FOR SECTION --- */}
+        {/* --- WHO IS THIS FOR --- */}
         <section className="py-12 border-t border-border mb-12">
-            <h3 className="text-2xl font-bold text-foreground mb-8 text-center">¿ESTO ES PARA TI?</h3>
+            <h3 className="text-2xl font-bold text-foreground mb-8 text-center uppercase">¿Es para vos?</h3>
             <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                <div className="bg-red-500/5 border border-red-500/20 p-6 rounded-lg">
-                    <h4 className="flex items-center gap-2 text-red-500 font-bold mb-4">
-                        <XCircle className="w-5 h-5"/> NO ES PARA TI SI:
+                <div className="bg-card/50 border border-red-500/10 p-6 rounded-lg">
+                    <h4 className="flex items-center gap-2 text-red-400 font-bold mb-4">
+                        <XCircle className="w-5 h-5"/> NO, SI BUSCAS:
                     </h4>
-                    <ul className="space-y-2 text-muted-foreground text-sm">
-                        <li className="flex gap-2"><span>•</span> Buscas botones mágicos sin trabajo.</li>
-                        <li className="flex gap-2"><span>•</span> No estás dispuesto a seguir instrucciones.</li>
-                        <li className="flex gap-2"><span>•</span> Prefieres la teoría universitaria a la práctica.</li>
+                    <ul className="space-y-3 text-muted-foreground text-sm">
+                        <li className="flex gap-2"><span>•</span> Botones mágicos sin trabajo real.</li>
+                        <li className="flex gap-2"><span>•</span> Teoría académica sin práctica.</li>
                     </ul>
                 </div>
                 <div className="bg-neon/5 border border-neon/20 p-6 rounded-lg">
                     <h4 className="flex items-center gap-2 text-neon font-bold mb-4">
-                        <CheckCircle2 className="w-5 h-5"/> SÍ ES PARA TI SI:
+                        <CheckCircle2 className="w-5 h-5"/> SÍ, SI QUERÉS:
                     </h4>
-                    <ul className="space-y-2 text-foreground/80 text-sm">
-                        <li className="flex gap-2"><span>•</span> Quieres resultados rápidos y medibles.</li>
-                        <li className="flex gap-2"><span>•</span> Entiendes que la IA es el apalancamiento definitivo.</li>
-                        <li className="flex gap-2"><span>•</span> Estás listo para ejecutar hoy mismo.</li>
+                    <ul className="space-y-3 text-foreground/90 text-sm font-medium">
+                        <li className="flex gap-2"><span>•</span> Resultados rápidos y medibles.</li>
+                        <li className="flex gap-2"><span>•</span> Sistemas copiables para tu negocio.</li>
                     </ul>
                 </div>
             </div>
         </section>
 
-        {/* --- CROSS SELL SECTION --- */}
+        {/* --- CROSS SELL --- */}
         {otherProducts.length > 0 && (
           <section className="border-t border-border pt-16">
             <h3 className="text-xl font-bold text-muted-foreground mb-8 uppercase tracking-widest text-center">Completa tu Arsenal</h3>
             <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
               {otherProducts.map((p) => (
-                <Link key={p.id} to={`/product/${p.id}`} className="group flex bg-card border border-border hover:border-neon/40 transition-all p-4 items-center gap-4 rounded-md">
-                  <div className="w-16 h-16 bg-muted flex items-center justify-center flex-shrink-0 text-muted-foreground/50 group-hover:text-neon transition-colors rounded-sm overflow-hidden relative">
+                <Link key={p.id} to={`/product/${p.id}`} className="group flex bg-card border border-border hover:border-neon/40 transition-all p-4 items-center gap-4 rounded-lg">
+                  <div className="w-20 h-20 bg-muted flex items-center justify-center shrink-0 rounded overflow-hidden relative">
                      {p.image_url ? (
                         <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" />
                      ) : (
-                         <>
-                            {(p.image_type === 'chart-line-up' || !p.image_type) && <Zap className="w-8 h-8" />}
-                            {p.image_type === 'infinity' && <div className="text-2xl font-bold">∞</div>}
-                            {p.image_type === 'unlock' && <Lock className="w-8 h-8" />}
-                         </>
+                         <Zap className="w-8 h-8 text-muted-foreground/50" />
                      )}
                   </div>
                   <div>
                     <h4 className="font-bold text-foreground group-hover:text-neon transition-colors">{p.title}</h4>
-                    <p className="text-xs text-muted-foreground mt-1">{p.price === 0 ? "GRATIS" : `$${p.price} USD`}</p>
+                    <p className="text-sm font-mono text-muted-foreground mt-1">{p.price === 0 ? "GRATIS" : `$${p.price}`}</p>
                   </div>
                   <div className="ml-auto">
-                    <ArrowRight className="text-muted-foreground group-hover:text-neon w-5 h-5 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                    <ArrowRight className="text-muted-foreground group-hover:text-neon w-5 h-5 transition-transform group-hover:translate-x-1" />
                   </div>
                 </Link>
               ))}
@@ -269,14 +258,14 @@ const ProductDetail = () => {
       
       {/* --- MOBILE STICKY CTA --- */}
       <div 
-        className={`fixed bottom-0 left-0 w-full bg-background/90 backdrop-blur-lg border-t border-neon/20 p-4 md:hidden z-40 transition-transform duration-300 ${showSticky ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`fixed bottom-0 left-0 w-full bg-background/80 backdrop-blur-xl border-t border-neon/20 p-4 md:hidden z-50 transition-transform duration-300 ${showSticky ? 'translate-y-0' : 'translate-y-full'}`}
       >
           <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col">
-                  <span className="text-xs text-muted-foreground font-bold uppercase">{product.title}</span>
-                  <span className="text-lg font-mono text-neon font-bold">{product.price === 0 ? "GRATIS" : `$${product.price}`}</span>
+                  <span className="text-[10px] text-muted-foreground font-bold uppercase truncate max-w-[120px]">{product.title}</span>
+                  <span className="text-xl font-mono text-neon font-black">{product.price === 0 ? "GRATIS" : `$${product.price}`}</span>
               </div>
-              <Button onClick={handleCheckout} size="sm" className="bg-neon text-black font-bold hover:bg-neon/90 rounded-none px-6">
+              <Button onClick={handleCheckout} size="sm" className="bg-neon text-black font-bold hover:bg-neon/90 rounded-md px-6 shadow-[0_0_15px_rgba(212,232,58,0.4)]">
                   {product.cta_text}
               </Button>
           </div>

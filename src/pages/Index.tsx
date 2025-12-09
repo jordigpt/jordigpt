@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, Zap, CheckCircle2, Lock, XCircle, Star, Quote, Loader2, Tag } from "lucide-react";
+import { ArrowRight, Zap, CheckCircle2, Lock, XCircle, Star, Quote, Loader2, Timer, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -12,6 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 interface Product {
   id: string;
@@ -45,7 +46,6 @@ const Index = () => {
         .order('created_at', { ascending: false });
       
       if (!error && data) {
-         // Sort explicitly just in case
          const sorted = [...data].sort((a, b) => (Number(b.is_featured) - Number(a.is_featured)));
          setProducts(sorted);
       }
@@ -82,7 +82,6 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
-        {/* Background Grid Effect */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
         <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-neon opacity-20 blur-[100px]"></div>
 
@@ -116,13 +115,9 @@ const Index = () => {
                 ACCEDER AL ARSENAL ⚡
               </Button>
             </a>
-            <p className="text-xs text-muted-foreground max-w-md text-center">
-              Implementables aunque recién estés empezando con IA. Nada de suscripciones, nada de plataformas raras.
-            </p>
             <div className="flex flex-wrap justify-center gap-3 mt-4">
               <span className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-[10px] border border-border">+1500 implementadores</span>
-              <span className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-[10px] border border-border">Contenido actualizado 2025</span>
-              <span className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-[10px] border border-border">Sin suscripciones mensuales</span>
+              <span className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-[10px] border border-border">Actualizado 2025</span>
             </div>
           </div>
         </div>
@@ -132,9 +127,8 @@ const Index = () => {
       <section className="border-y border-border bg-muted/30 py-8 overflow-hidden">
         <div className="container mx-auto px-4 flex flex-wrap justify-center gap-x-8 gap-y-4 items-center text-muted-foreground font-mono text-sm uppercase tracking-widest text-center">
           <span className="flex items-center gap-2"><CheckCircle2 className="text-neon w-4 h-4"/> 100% probado en negocios reales</span>
-          <span className="flex items-center gap-2"><CheckCircle2 className="text-neon w-4 h-4"/> Resultados medibles, no likes</span>
-          <span className="flex items-center gap-2"><CheckCircle2 className="text-neon w-4 h-4"/> Acceso inmediato y actualizaciones</span>
-          <span className="flex items-center gap-2"><CheckCircle2 className="text-neon w-4 h-4"/> Soporte por mail/DM</span>
+          <span className="flex items-center gap-2"><CheckCircle2 className="text-neon w-4 h-4"/> Resultados medibles</span>
+          <span className="flex items-center gap-2"><CheckCircle2 className="text-neon w-4 h-4"/> Acceso inmediato</span>
         </div>
       </section>
 
@@ -159,63 +153,77 @@ const Index = () => {
                 <Link 
                     key={product.id} 
                     to={`/product/${product.id}`}
-                    className="group relative bg-card border border-border overflow-hidden hover:border-neon/50 transition-all duration-300 flex flex-col h-full rounded-md shadow-sm hover:shadow-lg hover:shadow-neon/5"
+                    className="group relative bg-card border border-border flex flex-col h-full rounded-xl shadow-sm hover:shadow-2xl hover:shadow-neon/10 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
                 >
-                    {/* Badge destacado */}
+                    {/* Featured/Badge Overlay */}
                     {(product.badge) && (
-                         <div className={`absolute top-0 right-0 z-20 px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-bl-lg shadow-md ${product.is_featured ? 'bg-neon text-black' : 'bg-foreground text-background'}`}>
+                         <div className={`absolute top-0 right-0 z-20 px-4 py-1 text-xs font-bold uppercase tracking-wider rounded-bl-lg shadow-md ${product.is_featured ? 'bg-neon text-black' : 'bg-foreground text-background'}`}>
                             {product.badge}
                          </div>
                     )}
-                    
-                    {/* Image Placeholder area */}
-                    <div className="h-56 bg-muted/30 flex items-center justify-center border-b border-border group-hover:bg-muted/50 transition-colors relative overflow-hidden">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neon/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                    {/* Image Area */}
+                    <div className="aspect-[16/9] w-full bg-muted/30 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent opacity-60 z-10"></div>
                       
                       {product.image_url ? (
-                          <img src={product.image_url} alt={product.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          <img 
+                            src={product.image_url} 
+                            alt={product.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                          />
                       ) : (
-                          <div className="relative z-10">
-                              {(product.image_type === 'chart-line-up' || !product.image_type) && <Zap className="w-20 h-20 text-muted-foreground/30 group-hover:text-neon transition-colors duration-500 group-hover:scale-110 transform" />}
-                              {product.image_type === 'infinity' && <div className="text-7xl font-bold text-muted-foreground/30 group-hover:text-neon transition-colors duration-500 group-hover:scale-110 transform">∞</div>}
-                              {product.image_type === 'unlock' && <Lock className="w-20 h-20 text-muted-foreground/30 group-hover:text-neon transition-colors duration-500 group-hover:scale-110 transform" />}
+                          <div className="absolute inset-0 flex items-center justify-center z-0">
+                              {(product.image_type === 'chart-line-up' || !product.image_type) && <Zap className="w-16 h-16 text-muted-foreground/20 group-hover:text-neon/50 transition-colors" />}
+                              {product.image_type === 'infinity' && <div className="text-6xl font-bold text-muted-foreground/20 group-hover:text-neon/50 transition-colors">∞</div>}
+                              {product.image_type === 'unlock' && <Lock className="w-16 h-16 text-muted-foreground/20 group-hover:text-neon/50 transition-colors" />}
                           </div>
-                      )}
-
-                      {/* Free Tag if specific */}
-                      {product.is_free && !product.badge && (
-                        <div className="absolute top-4 left-4 bg-muted-foreground/20 backdrop-blur-md border border-white/10 text-foreground px-2 py-1 rounded text-xs font-bold">
-                          FREE
-                        </div>
                       )}
                     </div>
 
-                    <div className="p-6 flex flex-col flex-1">
-                      <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-neon transition-colors flex items-start justify-between gap-2">
-                          {product.title}
-                          {product.is_featured && <Star className="w-4 h-4 text-neon fill-neon flex-shrink-0 mt-1" />}
-                      </h3>
-                      
-                      <p className="text-muted-foreground text-sm mb-6 line-clamp-3 leading-relaxed">
-                          {product.short_description}
-                      </p>
-                      
-                      <div className="mt-auto pt-5 border-t border-border/50">
-                          <div className="flex items-end justify-between">
-                            <div className="flex flex-col">
-                              {product.original_price_display && (
-                                <span className="text-xs text-muted-foreground/70 line-through decoration-red-500/50 mb-0.5 font-mono">
-                                  {product.original_price_display}
-                                </span>
-                              )}
-                              <span className="text-2xl font-mono font-bold text-foreground tracking-tight">
-                                {product.price_display || (product.price === 0 ? "GRATIS" : `$${product.price}`)}
-                              </span>
-                            </div>
-                            
-                            <Button size="sm" className="bg-foreground text-background hover:bg-neon hover:text-black font-bold text-xs px-4 h-9 rounded-sm transition-all shadow-none group-hover:shadow-[0_0_15px_rgba(212,232,58,0.3)]">
-                              VER MÁS <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
-                            </Button>
+                    <div className="p-6 flex flex-col flex-1 relative z-20 -mt-8">
+                      {/* Product Card Body */}
+                      <div className="bg-card border border-border rounded-lg p-5 shadow-lg flex-1 flex flex-col">
+                          <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-neon transition-colors leading-tight">
+                              {product.title}
+                          </h3>
+                          <p className="text-muted-foreground text-xs leading-relaxed mb-4 line-clamp-3">
+                              {product.short_description}
+                          </p>
+                          
+                          {/* Divider */}
+                          <div className="w-full h-px bg-border/50 my-auto"></div>
+
+                          {/* Pricing Section - No Brainer Style */}
+                          <div className="pt-4 mt-2">
+                             <div className="flex items-center justify-between">
+                                <div className="flex flex-col">
+                                    {product.original_price_display && !product.is_free && (
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-xs text-muted-foreground line-through decoration-destructive/60">
+                                                {product.original_price_display}
+                                            </span>
+                                            <Badge variant="outline" className="text-[10px] h-4 px-1 py-0 border-neon/30 text-neon bg-neon/5">
+                                                OFERTA
+                                            </Badge>
+                                        </div>
+                                    )}
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-2xl font-black text-foreground tracking-tighter group-hover:text-neon transition-colors">
+                                            {product.price_display || (product.price === 0 ? "GRATIS" : `$${product.price}`)}
+                                        </span>
+                                    </div>
+                                    {!product.is_free && (
+                                        <span className="text-[10px] text-muted-foreground font-medium">
+                                            {product.price_microcopy ? "Pago único" : "Acceso inmediato"}
+                                        </span>
+                                    )}
+                                </div>
+                                
+                                <div className="h-10 w-10 rounded-full bg-secondary group-hover:bg-neon flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm">
+                                    <ArrowRight className="w-5 h-5 text-foreground group-hover:text-black" />
+                                </div>
+                             </div>
                           </div>
                       </div>
                     </div>
@@ -226,77 +234,41 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Comparison Section (Why Me?) */}
+      {/* Comparison Section */}
       <section className="py-24 bg-background border-t border-border">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">¿POR QUÉ MIS SISTEMAS Y NO OTRO CURSO MÁS?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">¿POR QUÉ MIS SISTEMAS?</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              La mayoría vende promesas vacías. Yo documento los sistemas reales que uso para crecer mis propios negocios y los de mis clientes.
+              La mayoría vende promesas. Yo te vendo los sistemas que uso para facturar.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
             {/* The Old Way */}
-            <div className="p-8 border border-border bg-muted/20 rounded-lg relative overflow-hidden opacity-90 hover:opacity-100 transition-opacity flex flex-col order-1 md:order-1 h-full">
+            <div className="p-8 border border-border bg-muted/20 rounded-lg flex flex-col">
                <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                 <XCircle className="text-red-500 w-5 h-5" /> MÉTODOS OBSOLETOS
+                 <XCircle className="text-red-500 w-5 h-5" /> MÉTODOS VIEJOS
                </h3>
                <ul className="space-y-4 text-muted-foreground flex-1 text-sm">
-                 <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Pagar Ads carísimos sin saber si van a convertir.</span></li>
-                 <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Pasarte 8 horas por día creando contenido que nadie ve.</span></li>
-                 <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Contratar “agencias de IA” que tercerizan todo.</span></li>
-                 <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Pagar +USD 500/mes en software SaaS innecesario.</span></li>
+                 <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Pagar Ads sin validar oferta.</span></li>
+                 <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Crear contenido manualmente 24/7.</span></li>
+                 <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Suscripciones mensuales que sangran tu caja.</span></li>
                </ul>
             </div>
 
             {/* The New Way */}
-            <div className="p-8 border border-neon/30 bg-neon/5 rounded-lg relative overflow-hidden shadow-[0_0_50px_rgba(212,232,58,0.05)] flex flex-col order-2 md:order-2 h-full transform hover:-translate-y-1 transition-transform duration-300">
-               <div className="absolute top-0 right-0 px-3 py-1 bg-neon text-black text-[10px] font-bold uppercase tracking-widest">JordiGPT Way</div>
+            <div className="p-8 border border-neon/30 bg-neon/5 rounded-lg shadow-[0_0_50px_rgba(212,232,58,0.05)] flex flex-col">
                <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                 <CheckCircle2 className="text-neon w-5 h-5" /> EL NUEVO ESTÁNDAR
+                 <CheckCircle2 className="text-neon w-5 h-5" /> JORDIGPT WAY
                </h3>
                <ul className="space-y-4 text-foreground/90 flex-1 text-sm">
-                 <li className="flex gap-3 items-start"><span className="text-neon mt-1 font-bold">✓</span> <span>Sistemas de tráfico orgánico apalancados con IA.</span></li>
-                 <li className="flex gap-3 items-start"><span className="text-neon mt-1 font-bold">✓</span> <span>Automatizaciones n8n con costo fijo 0.</span></li>
-                 <li className="flex gap-3 items-start"><span className="text-neon mt-1 font-bold">✓</span> <span>Productos High-Ticket creados en días, no meses.</span></li>
-                 <li className="flex gap-3 items-start"><span className="text-neon mt-1 font-bold">✓</span> <span>Plantillas plug & play para copiar y pegar.</span></li>
+                 <li className="flex gap-3 items-start"><span className="text-neon mt-1 font-bold">✓</span> <span>Tráfico orgánico + IA.</span></li>
+                 <li className="flex gap-3 items-start"><span className="text-neon mt-1 font-bold">✓</span> <span>Automatizaciones Costo Cero.</span></li>
+                 <li className="flex gap-3 items-start"><span className="text-neon mt-1 font-bold">✓</span> <span>Pago único y acceso de por vida.</span></li>
                </ul>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-24 bg-muted/5 border-t border-border">
-        <div className="container mx-auto px-4">
-           <h2 className="text-3xl font-bold text-foreground mb-2 text-center">INTELIGENCIA COLECTIVA</h2>
-           <p className="text-muted-foreground text-center mb-12">Personas reales facturando con estos sistemas.</p>
-           
-           <div className="grid md:grid-cols-3 gap-6">
-             {testimonials.map((t, i) => (
-               <div key={i} className="bg-card border border-border p-8 rounded-lg relative hover:shadow-lg transition-all hover:-translate-y-1 hover:border-neon/30 group">
-                 <Quote className="absolute top-6 right-6 text-neon/10 w-10 h-10 group-hover:text-neon/20 transition-colors" />
-                 <div className="flex items-center gap-3 mb-6">
-                   <Avatar className="h-10 w-10 border border-neon/20">
-                     <AvatarFallback className="bg-neon text-black font-bold text-xs">{t.initials}</AvatarFallback>
-                   </Avatar>
-                   <div>
-                     <div className="flex gap-1 items-center">
-                        <p className="font-bold text-foreground text-sm">{t.name}</p>
-                        <div className="flex">
-                            {[...Array(5)].map((_, idx) => (
-                                <Star key={idx} className="w-2 h-2 fill-neon text-neon" />
-                            ))}
-                        </div>
-                     </div>
-                     <p className="text-xs text-muted-foreground">{t.role}</p>
-                   </div>
-                 </div>
-                 <p className="text-muted-foreground text-sm leading-relaxed relative z-10">"{t.content}"</p>
-               </div>
-             ))}
-           </div>
         </div>
       </section>
 
@@ -304,38 +276,26 @@ const Index = () => {
       <section id="faq" className="py-24 border-t border-border bg-background">
         <div className="container mx-auto px-4 max-w-3xl">
           <h2 className="text-3xl font-bold text-foreground mb-4 text-center">PREGUNTAS FRECUENTES</h2>
-          <p className="text-center text-muted-foreground mb-12 text-sm">
-            Si todavía te queda alguna duda, escribime por Instagram a <a href="https://instagram.com/jordigpt" target="_blank" rel="noopener noreferrer" className="text-neon hover:underline">@jordigpt</a>.
-          </p>
-          
-          <Accordion type="single" collapsible className="w-full space-y-4">
-            <AccordionItem value="item-1" className="border border-border rounded-lg px-4 data-[state=open]:border-neon/30">
-              <AccordionTrigger className="text-foreground hover:text-neon hover:no-underline font-medium text-left">
-                ¿Cómo recibo el acceso a los productos?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground leading-relaxed">
-                Apenas completes el pago vas a ver en pantalla el botón de acceso y, en menos de un minuto, te llega también un correo con el enlace directo a tu panel de descargas.
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="item-2" className="border border-border rounded-lg px-4 data-[state=open]:border-neon/30">
-              <AccordionTrigger className="text-foreground hover:text-neon hover:no-underline font-medium text-left">
-                ¿Necesito conocimientos de programación?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground leading-relaxed">
-                No. Si sabés usar un navegador y copiar/pegar, estás del otro lado. Las guías están diseñadas para no-programadores.
-              </AccordionContent>
-            </AccordionItem>
-            
-            <AccordionItem value="item-3" className="border border-border rounded-lg px-4 data-[state=open]:border-neon/30">
-              <AccordionTrigger className="text-foreground hover:text-neon hover:no-underline font-medium text-left">
-                ¿El PLAN 1K garantiza resultados?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground leading-relaxed">
-                Te garantizo el sistema exacto. Los resultados dependen de tu ejecución.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          <div className="space-y-4 mt-8">
+            <Accordion type="single" collapsible className="w-full space-y-4">
+                <AccordionItem value="item-1" className="border border-border rounded-lg px-4 data-[state=open]:border-neon/30">
+                <AccordionTrigger className="text-foreground hover:text-neon hover:no-underline font-medium text-left">
+                    ¿Cómo recibo el acceso?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                    Acceso inmediato por email post-compra. Panel privado de descargas.
+                </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-2" className="border border-border rounded-lg px-4 data-[state=open]:border-neon/30">
+                <AccordionTrigger className="text-foreground hover:text-neon hover:no-underline font-medium text-left">
+                    ¿Sirve si no se programar?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                    100%. Todo está pensado para Low-Code / No-Code. Copiar, pegar, configurar.
+                </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+          </div>
         </div>
       </section>
 
