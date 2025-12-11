@@ -164,15 +164,15 @@ const Index = () => {
                          </div>
                     )}
 
-                    {/* Image Area - CHANGED: object-contain to prevent cropping text */}
-                    <div className="aspect-[16/9] w-full bg-black/40 relative overflow-hidden flex items-center justify-center">
+                    {/* Image Area - UPDATED to aspect-square and object-cover */}
+                    <div className="aspect-square w-full bg-black/40 relative overflow-hidden flex items-center justify-center">
                       <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent opacity-20 z-10 pointer-events-none"></div>
                       
                       {product.image_url ? (
                           <img 
                             src={product.image_url} 
                             alt={product.title} 
-                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700" 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                           />
                       ) : (
                           <div className="absolute inset-0 flex items-center justify-center z-0 bg-muted/30">
