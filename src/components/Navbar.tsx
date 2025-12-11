@@ -11,7 +11,7 @@ import {
 
 const Navbar = () => {
   const navLinks = [
-    { name: "ARSENAL", href: "/#products" },
+    { name: "RECURSOS", href: "/#products" },
     { name: "FAQ", href: "/#faq" },
   ];
 

@@ -139,7 +139,7 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">EL ARSENAL</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">TUS RECURSOS IA</h2>
               <p className="text-muted-foreground">Herramientas tácticas para tu crecimiento.</p>
             </div>
             <div className="h-1 w-full md:w-auto flex-1 bg-border mx-4 self-center"></div>
