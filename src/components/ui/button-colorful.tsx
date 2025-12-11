@@ -1,42 +1,27 @@
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ArrowUpRight } from "lucide-react";
+import React from "react";
 
-interface ButtonColorfulProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    label?: string;
+interface ButtonColorfulProps extends ButtonProps {
+  children: React.ReactNode;
 }
 
-export function ButtonColorful({
-    className,
-    label = "Explore Components",
-    ...props
-}: ButtonColorfulProps) {
+export const ButtonColorful = React.forwardRef<HTMLButtonElement, ButtonColorfulProps>(
+  ({ className, children, ...props }, ref) => {
     return (
-        <Button
-            className={cn(
-                "relative h-10 px-4 overflow-hidden rounded-full",
-                "bg-zinc-900 dark:bg-zinc-950",
-                "transition-all duration-200",
-                "group border border-border",
-                className
-            )}
-            {...props}
-        >
-            {/* Gradient background effect */}
-            <div
-                className={cn(
-                    "absolute inset-0",
-                    "bg-gradient-to-r from-neon/60 via-[#fcfda8] to-neon/60",
-                    "opacity-20 group-hover:opacity-60",
-                    "blur transition-opacity duration-500"
-                )}
-            />
-
-            {/* Content */}
-            <div className="relative flex items-center justify-center gap-2">
-                <span className="text-white dark:text-zinc-100 font-bold tracking-wide uppercase">{label}</span>
-                <ArrowUpRight className="w-4 h-4 text-neon" />
-            </div>
-        </Button>
+      <Button
+        className={cn(
+          "relative group overflow-hidden rounded-lg bg-neon text-neon-foreground font-bold shadow-[0_0_20px_rgba(212,232,58,0.3)] hover:shadow-[0_0_30px_rgba(212,232,58,0.5)] transition-shadow duration-300",
+          className
+        )}
+        ref={ref}
+        {...props}
+      >
+        {/* Efecto de hover */}
+        <span className="absolute w-0 h-0 transition-all duration-500 ease-out bg-white/30 rounded-full group-hover:w-56 group-hover:h-56 opacity-50"></span>
+        <span className="relative z-10">{children}</span>
+      </Button>
     );
-}
+  }
+);
+ButtonColorful.displayName = "ButtonColorful";
