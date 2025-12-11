@@ -296,6 +296,34 @@ const Index = () => {
                     100%. Todo está pensado para Low-Code / No-Code. Copiar, pegar, configurar.
                 </AccordionContent>
                 </AccordionItem>
+                
+                {/* Nuevas FAQs Persuasivas */}
+                <AccordionItem value="item-3" className="border border-border rounded-lg px-4 data-[state=open]:border-neon/30">
+                <AccordionTrigger className="text-foreground hover:text-neon hover:no-underline font-medium text-left">
+                    ¿Es diferente a lo que hay gratis en YouTube?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                    YouTube te da piezas sueltas; yo te doy el rompecabezas armado. No pierdas meses filtrando ruido. Aquí tienes la estrategia exacta, los prompts probados y la estructura validada. El tiempo que te ahorras en prueba y error paga la inversión el primer día.
+                </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-4" className="border border-border rounded-lg px-4 data-[state=open]:border-neon/30">
+                <AccordionTrigger className="text-foreground hover:text-neon hover:no-underline font-medium text-left">
+                    No tengo tiempo para aprender algo nuevo ahora.
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                    Justamente por eso lo necesitas. No son cursos teóricos de 20 horas. Son sistemas de implementación rápida: copias, pegas y recuperas semanas de trabajo manual en una tarde. Si no tienes tiempo, es urgente que automatices.
+                </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="item-5" className="border border-border rounded-lg px-4 data-[state=open]:border-neon/30">
+                <AccordionTrigger className="text-foreground hover:text-neon hover:no-underline font-medium text-left">
+                    ¿Qué pasa si la IA cambia el mes que viene?
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                    El sistema incluye garantía de actualización 2025. Mis estrategias se basan en fundamentos de negocio, no en "hacks" temporales. Si la tecnología cambia, actualizo el producto y tú recibes la mejora gratis. Estás cubierto.
+                </AccordionContent>
+                </AccordionItem>
             </Accordion>
           </div>
         </div>
