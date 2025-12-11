@@ -164,18 +164,18 @@ const Index = () => {
                          </div>
                     )}
 
-                    {/* Image Area */}
-                    <div className="aspect-[16/9] w-full bg-muted/30 relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent opacity-60 z-10"></div>
+                    {/* Image Area - CHANGED: object-contain to prevent cropping text */}
+                    <div className="aspect-[16/9] w-full bg-black/40 relative overflow-hidden flex items-center justify-center">
+                      <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent opacity-20 z-10 pointer-events-none"></div>
                       
                       {product.image_url ? (
                           <img 
                             src={product.image_url} 
                             alt={product.title} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700" 
                           />
                       ) : (
-                          <div className="absolute inset-0 flex items-center justify-center z-0">
+                          <div className="absolute inset-0 flex items-center justify-center z-0 bg-muted/30">
                               {(product.image_type === 'chart-line-up' || !product.image_type) && <Zap className="w-16 h-16 text-muted-foreground/20 group-hover:text-neon/50 transition-colors" />}
                               {product.image_type === 'infinity' && <div className="text-6xl font-bold text-muted-foreground/20 group-hover:text-neon/50 transition-colors">∞</div>}
                               {product.image_type === 'unlock' && <Lock className="w-16 h-16 text-muted-foreground/20 group-hover:text-neon/50 transition-colors" />}
@@ -183,7 +183,7 @@ const Index = () => {
                       )}
                     </div>
 
-                    <div className="p-6 flex flex-col flex-1 relative z-20 -mt-8">
+                    <div className="p-6 flex flex-col flex-1 relative z-20 -mt-6">
                       {/* Product Card Body */}
                       <div className="bg-card border border-border rounded-lg p-5 shadow-lg flex-1 flex flex-col">
                           <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-neon transition-colors leading-tight">

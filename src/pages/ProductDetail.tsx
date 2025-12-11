@@ -130,18 +130,17 @@ const ProductDetail = () => {
           
           {/* Left Column: Visuals */}
           <div className="space-y-6 lg:sticky lg:top-24">
-            <div className="aspect-[4/3] rounded-xl overflow-hidden border border-border relative bg-muted group shadow-2xl shadow-neon/5">
+            {/* CHANGED: Removed fixed aspect ratio, using h-auto and object-contain */}
+            <div className="w-full rounded-xl overflow-hidden border border-border relative bg-muted/20 group shadow-2xl shadow-neon/5">
               {product.image_url ? (
-                  <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" />
+                  <img src={product.image_url} alt={product.title} className="w-full h-auto object-contain max-h-[600px] mx-auto" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-card">
+                <div className="aspect-[4/3] w-full flex items-center justify-center bg-card">
                     {(product.image_type === 'chart-line-up' || !product.image_type) && <Zap className="w-32 h-32 text-neon animate-pulse-glow" />}
                     {product.image_type === 'infinity' && <div className="text-9xl font-bold text-neon animate-pulse-glow">∞</div>}
                     {product.image_type === 'unlock' && <Lock className="w-32 h-32 text-neon animate-pulse-glow" />}
                 </div>
               )}
-              {/* Overlay Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent pointer-events-none lg:hidden"></div>
             </div>
 
             <div className="flex gap-4 items-center justify-center text-xs text-muted-foreground border border-border p-4 rounded-lg bg-card/50">
