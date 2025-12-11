@@ -92,14 +92,14 @@ const Index = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-neon"></span>
             </span>
-            La era de la IA ya arrancó (vos decidís si la aprovechás)
+            LA ERA DE LA IA YA ARRANCÓ · APROVECHALA
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 leading-tight">
             <span className="text-foreground">FACTURÁ </span>
             <span className="text-neon">CON IA</span>
             <br />
-            <span className="text-neon">ANTES DE QUE SEA TARDE</span>
+            <span className="text-neon">MIENTRAS OTROS DUDAN</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-4 leading-relaxed">
@@ -113,7 +113,7 @@ const Index = () => {
           <div className="flex flex-col items-center gap-4">
             <a href="#products">
               <ButtonColorful 
-                label="ACCEDER AL ARSENAL ⚡" 
+                label="EMPEZAR A FACTURAR CON IA" 
                 className="w-full sm:w-auto h-auto px-8 py-6 text-lg hover:scale-105 transition-transform"
               />
             </a>
