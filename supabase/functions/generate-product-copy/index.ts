@@ -1,6 +1,7 @@
 // @ts-nocheck
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,7 +9,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -16,37 +16,33 @@ serve(async (req) => {
   try {
     const { prompt } = await req.json();
 
-    if (!prompt) {
-      throw new Error('No prompt provided');
+    if (!prompt) throw new Error('No prompt provided');
+
+    // 1. Setup Supabase Client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+    );
+
+    // 2. Fetch System Prompt from DB
+    const { data: setting, error: dbError } = await supabaseClient
+      .from('admin_settings')
+      .select('value')
+      .eq('key', 'ai_system_prompt')
+      .single();
+
+    // Fallback prompt if DB fails
+    let systemPrompt = setting?.value;
+    
+    if (!systemPrompt || dbError) {
+      console.warn("Could not fetch system prompt from DB, using fallback.");
+      systemPrompt = `You are a persuasive copywriter. Output JSON only.`; 
     }
 
+    // 3. Call OpenAI
     const openAiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAiKey) {
-      throw new Error('OpenAI API Key not configured');
-    }
-
-    const systemPrompt = `
-    You are JORDI-GPT, an elite direct-response copywriter and aggressive sales expert. 
-    Your goal is to take a raw, unstructured product idea and transform it into a high-converting, persuasive product listing.
-    
-    Tone: Professional, high-energy, authoritative, slightly aggressive (like the "Wolf of Wall Street" meets a Tech Visionary).
-    
-    You MUST output valid JSON only. No markdown formatting, no backticks.
-    
-    The JSON structure must match this interface exactly:
-    {
-      "title": "A punchy, short, catchy title (max 5 words)",
-      "short_description": "A hook. 1-2 sentences that grab attention immediately.",
-      "full_description": "A persuasive sales letter. Use AIDA (Attention, Interest, Desire, Action). Focus on benefits, not features. Address pain points.",
-      "price": number (suggest a psychological price ending in .99 or .00 based on value),
-      "price_display": "string (e.g. 'US$ 29.99')",
-      "features": ["Feature 1 (benefit oriented)", "Feature 2", "Feature 3", "Feature 4"],
-      "cta_text": "Action verb (e.g. 'UNLOCK NOW', 'START PROFITING')",
-      "badge": "Short 2-word badge (e.g. 'BEST SELLER', 'NEW METHOD')",
-      "price_microcopy": "Reassurance text (e.g. 'Lifetime access · Instant delivery')",
-      "image_type": "Select strictly one of these values: 'chart-line-up', 'infinity', 'unlock'"
-    }
-    `;
+    if (!openAiKey) throw new Error('OpenAI API Key not configured');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -55,7 +51,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', // or gpt-3.5-turbo if prefer lower cost
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Here is the raw idea: ${prompt}` }
@@ -65,9 +61,9 @@ serve(async (req) => {
     });
 
     const data = await response.json();
+    if (!data.choices) throw new Error(JSON.stringify(data));
+    
     const aiContent = data.choices[0].message.content;
-
-    // Clean up potential formatting issues if AI adds markdown
     const jsonStr = aiContent.replace(/```json/g, '').replace(/```/g, '').trim();
     const parsedData = JSON.parse(jsonStr);
 

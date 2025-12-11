@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package } from "lucide-react";
+import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +53,10 @@ const Admin = () => {
   // Data State
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  
+  // Settings State
+  const [aiSystemPrompt, setAiSystemPrompt] = useState("");
+  const [savingSettings, setSavingSettings] = useState(false);
   
   // Form State
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -104,14 +108,32 @@ const Admin = () => {
         .select('*')
         .order('created_at', { ascending: false });
         
-    if (ordersError) {
-        console.error("Orders error:", ordersError);
-        // Don't show toast if it's just empty or RLS restriction on first load
-    } else {
-        setOrders(ordersData || []);
-    }
+    if (!ordersError) setOrders(ordersData || []);
+
+    // Fetch Settings
+    const { data: settingsData } = await supabase
+        .from('admin_settings')
+        .select('value')
+        .eq('key', 'ai_system_prompt')
+        .single();
+    
+    if (settingsData) setAiSystemPrompt(settingsData.value);
 
     setLoading(false);
+  };
+
+  const handleSaveSettings = async () => {
+      setSavingSettings(true);
+      const { error } = await supabase
+        .from('admin_settings')
+        .upsert({ key: 'ai_system_prompt', value: aiSystemPrompt });
+
+      if (error) {
+          toast({ title: "Error saving settings", description: error.message, variant: "destructive" });
+      } else {
+          toast({ title: "Configuración guardada", description: "El agente IA ahora usará estas instrucciones." });
+      }
+      setSavingSettings(false);
   };
 
   const handleLogout = async () => {
@@ -225,19 +247,17 @@ const Admin = () => {
       return p ? p.title : id;
   }
 
-  // Handle AI Auto-Fill
   const handleAIGenerated = (aiData: any) => {
     setFormData(prev => ({
       ...prev,
       ...aiData
     }));
-    // Also update the separate features input state
     if (aiData.features && Array.isArray(aiData.features)) {
       setFeaturesInput(aiData.features.join('\n'));
     }
   };
 
-  if (loading && !products.length) return <div className="flex justify-center items-center h-screen bg-background"><Loader2 className="animate-spin text-neon" /></div>;
+  if (loading && !products.length && !aiSystemPrompt) return <div className="flex justify-center items-center h-screen bg-background"><Loader2 className="animate-spin text-neon" /></div>;
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-20">
@@ -252,9 +272,12 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="products" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-8">
+            <TabsList className="grid w-full grid-cols-3 max-w-[600px] mb-8">
                 <TabsTrigger value="products">Inventory (Productos)</TabsTrigger>
                 <TabsTrigger value="orders">Sales (Ventas)</TabsTrigger>
+                <TabsTrigger value="settings" className="data-[state=active]:text-neon">
+                    <Settings className="w-4 h-4 mr-2" /> AI Config
+                </TabsTrigger>
             </TabsList>
 
             {/* --- PRODUCTS TAB --- */}
@@ -467,6 +490,48 @@ const Admin = () => {
                         </Table>
                     </CardContent>
                 </Card>
+            </TabsContent>
+
+            {/* --- AI CONFIG TAB --- */}
+            <TabsContent value="settings">
+                 <div className="grid lg:grid-cols-2 gap-8">
+                    <Card className="border-neon/30 bg-neon/5 lg:col-span-2">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-neon">
+                                <Settings className="w-5 h-5" /> Configuración del Agente IA
+                            </CardTitle>
+                            <CardDescription>
+                                Define la personalidad, restricciones y formato de salida del creador de productos.
+                                <br />
+                                <strong>ADVERTENCIA:</strong> No borres la estructura JSON del final, o la IA dejará de funcionar.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Textarea 
+                                className="font-mono text-sm bg-background/80 min-h-[500px] border-border focus:border-neon"
+                                value={aiSystemPrompt}
+                                onChange={(e) => setAiSystemPrompt(e.target.value)}
+                            />
+                            <div className="flex justify-end gap-2">
+                                <Button 
+                                    variant="outline" 
+                                    onClick={() => fetchData()}
+                                    className="gap-2"
+                                >
+                                    <RefreshCw className="w-4 h-4" /> Recargar Original
+                                </Button>
+                                <Button 
+                                    onClick={handleSaveSettings} 
+                                    disabled={savingSettings}
+                                    className="bg-neon text-black hover:bg-neon/90 gap-2 font-bold"
+                                >
+                                    {savingSettings ? <Loader2 className="animate-spin w-4 h-4"/> : <Save className="w-4 h-4" />}
+                                    GUARDAR CONFIGURACIÓN
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                 </div>
             </TabsContent>
         </Tabs>
 
