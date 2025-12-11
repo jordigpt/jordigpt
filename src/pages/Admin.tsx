@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw } from "lucide-react";
+import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw, Upload, Image as ImageIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -170,9 +170,9 @@ const Admin = () => {
       const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
       
       setFormData(prev => ({ ...prev, image_url: data.publicUrl }));
-      toast({ title: "Image uploaded successfully" });
+      toast({ title: "Imagen subida exitosamente" });
     } catch (error: any) {
-      toast({ title: "Error uploading image", description: error.message, variant: "destructive" });
+      toast({ title: "Error al subir imagen", description: error.message, variant: "destructive" });
     } finally {
       setUploading(false);
     }
@@ -373,9 +373,44 @@ const Admin = () => {
                         </div>
 
                         <div>
-                            <Label htmlFor="image">Image Upload</Label>
-                            <Input id="image" type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="bg-background/50" />
-                            {uploading && <p className="text-xs text-muted-foreground mt-1">Uploading...</p>}
+                            <Label htmlFor="image">Imagen del Producto</Label>
+                            <div className="flex flex-col gap-2 mt-1">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    className="w-full border-dashed border-2 border-border h-20 relative hover:border-neon/50 transition-colors"
+                                    onClick={() => document.getElementById('image')?.click()}
+                                    disabled={uploading}
+                                >
+                                    {uploading ? (
+                                        <div className="flex items-center text-muted-foreground"><Loader2 className="animate-spin mr-2 h-4 w-4"/> Subiendo...</div>
+                                    ) : (
+                                        <div className="flex flex-col items-center text-muted-foreground">
+                                            <Upload className="h-6 w-6 mb-1"/>
+                                            <span className="text-xs">Click para subir imagen</span>
+                                        </div>
+                                    )}
+                                </Button>
+                                <Input 
+                                    id="image" 
+                                    type="file" 
+                                    accept="image/*" 
+                                    onChange={handleImageUpload} 
+                                    disabled={uploading} 
+                                    className="hidden" 
+                                />
+                                
+                                {formData.image_url && (
+                                    <div className="relative rounded-lg overflow-hidden border border-border mt-2 h-40 bg-muted/30 flex items-center justify-center group">
+                                        <img src={formData.image_url} alt="Preview" className="h-full w-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <Button type="button" size="sm" variant="destructive" onClick={() => setFormData({...formData, image_url: ""})}>
+                                                <Trash2 className="w-4 h-4 mr-2"/> Quitar
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         
                         <div className="flex gap-4 pt-2">
