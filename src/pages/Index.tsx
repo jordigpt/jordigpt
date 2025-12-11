@@ -102,7 +102,7 @@ const Index = () => {
           </h1>
           
           <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-4 leading-relaxed">
-            Guías y sistemas IA probados (como PLAN 1K) para que tus ideas y habilidades se vuelvan ingresos reales.
+            Guías y sistemas IA probados como PLAN 1K para que tus ideas y habilidades se vuelvan ingresos reales.
           </p>
 
           <p className="text-sm font-medium text-foreground/80 mb-10">
@@ -110,10 +110,10 @@ const Index = () => {
           </p>
           
           <div className="flex flex-col items-center gap-4">
-            <a href="#products">
+            <a href="#products" className="w-full sm:w-auto px-4 sm:px-0">
               <ButtonColorful 
                 label="EMPEZAR A FACTURAR CON IA" 
-                className="w-full sm:w-auto h-auto px-8 py-6 text-lg hover:scale-105 transition-transform border-2 border-neon/50"
+                className="w-full h-auto px-8 py-6 text-lg hover:scale-105 transition-transform border-2 border-neon/50"
               />
             </a>
             <div className="flex flex-wrap justify-center gap-3 mt-4">
