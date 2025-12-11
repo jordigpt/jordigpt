@@ -99,7 +99,8 @@ const Index = () => {
             <span className="text-foreground">FACTURÁ </span>
             <span className="text-neon">CON IA</span>
             <br />
-            <span className="text-neon">MIENTRAS OTROS DUDAN</span>
+            <span className="text-foreground">MIENTRAS OTROS </span>
+            <span className="text-neon">DUDAN</span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-4 leading-relaxed">
