@@ -96,14 +96,12 @@ const Index = () => {
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 leading-tight">
-            <span className="text-foreground">FACTURÁ </span>
-            <span className="text-neon">CON IA</span>
+            FACTURÁ <span className="text-neon">CON IA</span>
             <br />
-            <span className="text-foreground">MIENTRAS OTROS </span>
-            <span className="text-neon">DUDAN</span>
+            MIENTRAS OTROS <span className="text-neon">DUDAN</span>
           </h1>
           
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-4 leading-relaxed">
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-4 leading-relaxed">
             Guías y sistemas IA probados (como PLAN 1K) para que tus ideas y habilidades se vuelvan ingresos reales.
           </p>
 
@@ -115,7 +113,7 @@ const Index = () => {
             <a href="#products">
               <ButtonColorful 
                 label="EMPEZAR A FACTURAR CON IA" 
-                className="w-full sm:w-auto h-auto px-8 py-6 text-lg hover:scale-105 transition-transform"
+                className="w-full sm:w-auto h-auto px-8 py-6 text-lg hover:scale-105 transition-transform border-2 border-neon/50"
               />
             </a>
             <div className="flex flex-wrap justify-center gap-3 mt-4">
@@ -184,7 +182,7 @@ const Index = () => {
                       )}
                     </div>
 
-                    <div className="p-6 flex flex-col flex-1 relative z-20 -mt-6">
+                    <div className="p-6 flex flex-col flex-1 relative z-20 -mt-12">
                       {/* Product Card Body */}
                       <div className="bg-card border border-border rounded-lg p-5 shadow-lg flex-1 flex flex-col">
                           <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-neon transition-colors leading-tight">
@@ -241,7 +239,7 @@ const Index = () => {
       <section className="py-24 bg-background border-t border-border">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">¿POR QUÉ MIS SISTEMAS?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">¿POR QUÉ <span className="text-neon">MIS SISTEMAS</span>?</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">
               La mayoría vende promesas. Yo te vendo los sistemas que uso para facturar.
             </p>
@@ -253,7 +251,7 @@ const Index = () => {
                <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
                  <XCircle className="text-red-500 w-5 h-5" /> MÉTODOS VIEJOS
                </h3>
-               <ul className="space-y-4 text-muted-foreground flex-1 text-sm">
+               <ul className="space-y-4 text-muted-foreground flex-1 text-base">
                  <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Pagar Ads sin validar oferta.</span></li>
                  <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Crear contenido manualmente 24/7.</span></li>
                  <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Suscripciones mensuales que sangran tu caja.</span></li>
@@ -265,7 +263,7 @@ const Index = () => {
                <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
                  <CheckCircle2 className="text-neon w-5 h-5" /> JORDIGPT WAY
                </h3>
-               <ul className="space-y-4 text-foreground/90 flex-1 text-sm">
+               <ul className="space-y-4 text-foreground/90 flex-1 text-base">
                  <li className="flex gap-3 items-start"><span className="text-neon mt-1 font-bold">✓</span> <span>Tráfico orgánico + IA.</span></li>
                  <li className="flex gap-3 items-start"><span className="text-neon mt-1 font-bold">✓</span> <span>Automatizaciones Costo Cero.</span></li>
                  <li className="flex gap-3 items-start"><span className="text-neon mt-1 font-bold">✓</span> <span>Pago único y acceso de por vida.</span></li>
