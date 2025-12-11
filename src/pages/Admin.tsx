@@ -13,6 +13,7 @@ import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { AdminAIAssistant } from "@/components/AdminAIAssistant";
 
 // Interfaces
 interface Product {
@@ -224,6 +225,18 @@ const Admin = () => {
       return p ? p.title : id;
   }
 
+  // Handle AI Auto-Fill
+  const handleAIGenerated = (aiData: any) => {
+    setFormData(prev => ({
+      ...prev,
+      ...aiData
+    }));
+    // Also update the separate features input state
+    if (aiData.features && Array.isArray(aiData.features)) {
+      setFeaturesInput(aiData.features.join('\n'));
+    }
+  };
+
   if (loading && !products.length) return <div className="flex justify-center items-center h-screen bg-background"><Loader2 className="animate-spin text-neon" /></div>;
 
   return (
@@ -250,13 +263,14 @@ const Admin = () => {
                 {/* Form Section */}
                 <div className="lg:col-span-1">
                     <Card className="sticky top-24 border-border">
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="flex items-center gap-2">
                             <Package className="w-5 h-5 text-neon" />
-                            {editingId ? "Edit Product" : "Add New Product"}
+                            {editingId ? "Edit Product" : "Nuevo Producto"}
                         </CardTitle>
+                        <AdminAIAssistant onGenerate={handleAIGenerated} />
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-4">
                         <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Basic Info */}
                         <div>
