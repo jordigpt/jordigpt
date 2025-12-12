@@ -169,6 +169,25 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
     setIsUploading(false);
   };
 
+  const getDisplayInfo = (item: ProductContent) => {
+      if (item.content_type === 'text') return '(Contenido de texto/HTML)';
+      if (!item.content_url) return '';
+
+      try {
+          if (item.content_type === 'file') {
+              // Extract filename from URL
+              const parts = item.content_url.split('/');
+              const fileNameWithTimestamp = parts[parts.length - 1];
+              // Remove the timestamp prefix we added (e.g. 17000000-file.pdf)
+              const cleanName = fileNameWithTimestamp.replace(/^\d+-/, '');
+              return decodeURIComponent(cleanName);
+          }
+          return item.content_url;
+      } catch {
+          return item.content_url;
+      }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl h-[85vh] flex flex-col p-0 gap-0 bg-background border-border overflow-hidden">
@@ -290,36 +309,39 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
                     {content.map((item, index) => (
                     <div 
                         key={item.id} 
-                        className="group flex items-center gap-3 p-4 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-neon/30 transition-all relative overflow-hidden w-full"
+                        className="group flex items-center justify-between gap-3 p-3 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-neon/30 transition-all w-full"
                     >
-                        {/* Icon Container */}
-                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0 border border-border group-hover:bg-neon/10 group-hover:text-neon transition-colors">
-                            {item.content_type === 'file' && <FileText className="h-5 w-5" />}
-                            {item.content_type === 'video' && <Video className="h-5 w-5" />}
-                            {item.content_type === 'text' && <FileText className="h-5 w-5" />}
-                        </div>
-
-                        {/* Text Content - min-w-0 ensures truncation works */}
-                        <div className="flex-1 min-w-0 pr-2">
-                            <div className="flex items-center gap-2 mb-0.5">
-                                <Badge variant="secondary" className="text-[10px] h-4 px-1 rounded-sm uppercase shrink-0">
-                                    {index + 1}
-                                </Badge>
-                                <h4 className="font-bold text-sm truncate" title={item.title}>
-                                    {item.title}
-                                </h4>
+                        {/* Left side: Icon + Text Content */}
+                        <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
+                            {/* Icon Container */}
+                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0 border border-border group-hover:bg-neon/10 group-hover:text-neon transition-colors">
+                                {item.content_type === 'file' && <FileText className="h-5 w-5" />}
+                                {item.content_type === 'video' && <Video className="h-5 w-5" />}
+                                {item.content_type === 'text' && <FileText className="h-5 w-5" />}
                             </div>
-                            <p className="text-xs text-muted-foreground truncate font-mono opacity-70 block w-full" title={item.content_url || 'Texto'}>
-                                {item.content_type === 'text' ? '(Contenido de texto)' : item.content_url}
-                            </p>
+
+                            {/* Text Content */}
+                            <div className="flex flex-col min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                    <Badge variant="secondary" className="text-[10px] h-4 px-1 rounded-sm uppercase shrink-0">
+                                        {index + 1}
+                                    </Badge>
+                                    <h4 className="font-bold text-sm truncate" title={item.title}>
+                                        {item.title}
+                                    </h4>
+                                </div>
+                                <p className="text-xs text-muted-foreground truncate font-mono opacity-70 block w-full" title={item.content_url || ''}>
+                                    {getDisplayInfo(item)}
+                                </p>
+                            </div>
                         </div>
 
-                        {/* Actions - Fixed width ensuring it's never covered */}
-                        <div className="shrink-0 flex items-center pl-2 border-l border-border">
+                        {/* Right side: Actions (Delete Button) - Fixed width ensures it's never hidden */}
+                        <div className="shrink-0 flex items-center pl-2 border-l border-border ml-2">
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-9 w-9 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors z-10"
+                                className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
                                 onClick={() => handleDeleteContent(item)}
                                 disabled={loading}
                                 title="Eliminar contenido"
