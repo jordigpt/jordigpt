@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Terminal, Menu, X } from "lucide-react";
+import { Terminal, Menu, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import {
@@ -29,6 +29,12 @@ const Navbar = () => {
         
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
+          <Link 
+            to="/gallery" 
+            className="text-sm font-bold text-foreground hover:text-neon transition-colors flex items-center gap-2"
+          >
+            <Sparkles className="w-4 h-4 text-neon" /> PROMPT GALLERY
+          </Link>
           {navLinks.map((link) => (
             <a 
               key={link.name}
@@ -65,6 +71,11 @@ const Navbar = () => {
                 </div>
 
                 <div className="flex flex-col gap-6">
+                  <SheetClose asChild>
+                    <Link to="/gallery" className="text-lg font-bold text-foreground hover:text-neon transition-colors flex items-center gap-2">
+                       <Sparkles className="w-5 h-5 text-neon" /> PROMPT GALLERY
+                    </Link>
+                  </SheetClose>
                   {navLinks.map((link) => (
                     <SheetClose key={link.name} asChild>
                       <a 

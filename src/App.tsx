@@ -9,6 +9,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
 import PaymentResult from "./pages/PaymentResult";
+import PromptGallery from "./pages/PromptGallery";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/gallery" element={<PromptGallery />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<Admin />} />
             

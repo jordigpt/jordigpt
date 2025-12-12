@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw, Upload, Image as ImageIcon } from "lucide-react";
+import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw, Upload, Image as ImageIcon, Sparkles, Terminal } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +45,14 @@ interface Order {
   mp_preference_id?: string;
 }
 
+interface PromptItem {
+    id: string;
+    image_url: string;
+    prompt: string;
+    model_info: string;
+    created_at: string;
+}
+
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -53,12 +61,13 @@ const Admin = () => {
   // Data State
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [promptItems, setPromptItems] = useState<PromptItem[]>([]);
   
   // Settings State
   const [aiSystemPrompt, setAiSystemPrompt] = useState("");
   const [savingSettings, setSavingSettings] = useState(false);
   
-  // Form State
+  // Product Form State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Product>>({
     title: "",
@@ -78,6 +87,14 @@ const Admin = () => {
   });
   const [featuresInput, setFeaturesInput] = useState("");
   const [uploading, setUploading] = useState(false);
+
+  // Prompt Form State
+  const [promptForm, setPromptForm] = useState({
+      image_url: "",
+      prompt: "",
+      model_info: "Midjourney v6"
+  });
+  const [promptUploading, setPromptUploading] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -109,6 +126,14 @@ const Admin = () => {
         .order('created_at', { ascending: false });
         
     if (!ordersError) setOrders(ordersData || []);
+
+    // Fetch Prompt Items
+    const { data: promptsData, error: promptsError } = await supabase
+        .from('prompt_gallery_items')
+        .select('*')
+        .order('created_at', { ascending: false });
+    
+    if (!promptsError) setPromptItems(promptsData || []);
 
     // Fetch Settings
     const { data: settingsData } = await supabase
@@ -158,16 +183,15 @@ const Admin = () => {
 
       const file = e.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const fileName = `products/${Math.random()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file);
+        .from('product-images') // Reusing bucket, assuming folder structure works or flat
+        .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
+      const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
       
       setFormData(prev => ({ ...prev, image_url: data.publicUrl }));
       toast({ title: "Imagen subida exitosamente" });
@@ -257,6 +281,59 @@ const Admin = () => {
     }
   };
 
+  // --- PROMPT GALLERY HANDLERS ---
+  const handlePromptImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setPromptUploading(true);
+      if (!e.target.files || e.target.files.length === 0) throw new Error('Select an image.');
+
+      const file = e.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `gallery/${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images') // Storing in same bucket, separate folder
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
+      
+      setPromptForm(prev => ({ ...prev, image_url: data.publicUrl }));
+      toast({ title: "Imagen de galería subida" });
+    } catch (error: any) {
+      toast({ title: "Error upload", description: error.message, variant: "destructive" });
+    } finally {
+      setPromptUploading(false);
+    }
+  };
+
+  const handlePromptSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!promptForm.image_url || !promptForm.prompt) {
+        toast({ title: "Faltan datos", variant: "destructive" });
+        return;
+    }
+
+    const { error } = await supabase.from('prompt_gallery_items').insert([promptForm]);
+    if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+        toast({ title: "Prompt agregado a la galería" });
+        setPromptForm({ image_url: "", prompt: "", model_info: "Midjourney v6" });
+        fetchData();
+    }
+  };
+
+  const handleDeletePrompt = async (id: string) => {
+      if(!confirm("Borrar este prompt?")) return;
+      const { error } = await supabase.from('prompt_gallery_items').delete().eq('id', id);
+      if(!error) {
+          toast({ title: "Borrado" });
+          fetchData();
+      }
+  };
+
   if (loading && !products.length && !aiSystemPrompt) return <div className="flex justify-center items-center h-screen bg-background"><Loader2 className="animate-spin text-neon" /></div>;
 
   return (
@@ -272,11 +349,14 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="products" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 max-w-[600px] mb-8">
-                <TabsTrigger value="products">Inventory (Productos)</TabsTrigger>
-                <TabsTrigger value="orders">Sales (Ventas)</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 max-w-[800px] mb-8">
+                <TabsTrigger value="products">Inventory</TabsTrigger>
+                <TabsTrigger value="prompts">
+                    <Sparkles className="w-4 h-4 mr-2" /> Gallery
+                </TabsTrigger>
+                <TabsTrigger value="orders">Sales</TabsTrigger>
                 <TabsTrigger value="settings" className="data-[state=active]:text-neon">
-                    <Settings className="w-4 h-4 mr-2" /> AI Config
+                    <Settings className="w-4 h-4 mr-2" /> Config
                 </TabsTrigger>
             </TabsList>
 
@@ -471,6 +551,84 @@ const Admin = () => {
                         ))
                     )}
                 </div>
+                </div>
+            </TabsContent>
+
+             {/* --- PROMPT GALLERY TAB --- */}
+             <TabsContent value="prompts">
+                <div className="grid lg:grid-cols-3 gap-8">
+                     <div className="lg:col-span-1">
+                        <Card className="sticky top-24 border-border">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Sparkles className="w-5 h-5 text-neon" /> Nuevo Prompt
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <form onSubmit={handlePromptSubmit} className="space-y-4">
+                                    {/* Image Upload */}
+                                    <div>
+                                        <Label>Imagen Generada</Label>
+                                        <div className="mt-2">
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                className="w-full border-dashed border-2 border-border h-32 relative hover:border-neon/50"
+                                                onClick={() => document.getElementById('prompt-image')?.click()}
+                                                disabled={promptUploading}
+                                            >
+                                                {promptUploading ? <Loader2 className="animate-spin"/> : (promptForm.image_url ? <img src={promptForm.image_url} className="h-full w-full object-cover rounded" /> : <div className="flex flex-col items-center"><Upload className="mb-2"/>Subir Imagen</div>)}
+                                            </Button>
+                                            <Input id="prompt-image" type="file" className="hidden" accept="image/*" onChange={handlePromptImageUpload} />
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <Label>Prompt</Label>
+                                        <Textarea 
+                                            value={promptForm.prompt}
+                                            onChange={(e) => setPromptForm({...promptForm, prompt: e.target.value})}
+                                            placeholder="Pegar el prompt aquí..."
+                                            className="h-32 font-mono text-xs bg-background/50"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <Label>Modelo</Label>
+                                        <Input 
+                                            value={promptForm.model_info}
+                                            onChange={(e) => setPromptForm({...promptForm, model_info: e.target.value})}
+                                            placeholder="ej: Midjourney v6"
+                                            className="bg-background/50"
+                                        />
+                                    </div>
+
+                                    <Button type="submit" className="w-full bg-neon text-black font-bold" disabled={promptUploading}>
+                                        AGREGAR A GALERÍA
+                                    </Button>
+                                </form>
+                            </CardContent>
+                        </Card>
+                     </div>
+
+                     <div className="lg:col-span-2">
+                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                             {promptItems.map((item) => (
+                                 <div key={item.id} className="relative group rounded-lg overflow-hidden border border-border">
+                                     <img src={item.image_url} className="aspect-square object-cover w-full" />
+                                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                         <Button variant="destructive" size="icon" onClick={() => handleDeletePrompt(item.id)}>
+                                             <Trash2 className="w-4 h-4" />
+                                         </Button>
+                                     </div>
+                                     <div className="absolute bottom-0 left-0 w-full bg-black/80 p-2 text-xs truncate text-muted-foreground font-mono">
+                                         {item.model_info}
+                                     </div>
+                                 </div>
+                             ))}
+                         </div>
+                     </div>
                 </div>
             </TabsContent>
 
