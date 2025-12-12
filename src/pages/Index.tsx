@@ -154,10 +154,6 @@ const Index = () => {
                        Mi obsesión es simple: <span className="text-foreground font-medium">Transformar complejidad técnica en dinero real en tu cuenta.</span> Si estás listo para dejar de jugar con ChatGPT y empezar a construir activos digitales serios, estás en el lugar correcto.
                     </p>
                  </div>
-
-                 <div className="pt-4">
-                   <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Signature_sample.svg" alt="Firma" className="h-12 opacity-50 invert" />
-                 </div>
               </div>
 
            </div>
