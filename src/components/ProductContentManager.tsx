@@ -101,13 +101,22 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
     if (!e.target.files || e.target.files.length === 0) return;
     setIsUploading(true);
     const file = e.target.files[0];
-    const fileName = `deliverables/${product?.id}/${Date.now()}-${file.name}`;
+    
+    // Sanitize the filename to prevent "Invalid key" errors
+    const sanitizedFileName = file.name
+      .normalize("NFD") // Decompose accented characters
+      .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/[^a-zA-Z0-9.-]/g, ''); // Remove remaining special characters
 
-    const { error, data } = await supabase.storage.from('product-images').upload(fileName, file);
+    const filePath = `deliverables/${product?.id}/${Date.now()}-${sanitizedFileName}`;
+
+    const { error } = await supabase.storage.from('product-images').upload(filePath, file);
+    
     if (error) {
       toast.error("Upload failed: " + error.message);
     } else {
-      const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+      const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(filePath);
       setNewContent(prev => ({ ...prev, content_url: urlData.publicUrl }));
       toast.success("File uploaded!");
     }
