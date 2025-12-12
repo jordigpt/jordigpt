@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Timer, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { AuthModal } from "@/components/AuthModal";
+import { Session } from "@supabase/supabase-js";
 
 interface Product {
   id: string;
@@ -34,6 +36,9 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [showSticky, setShowSticky] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  const [session, setSession] = useState<Session | null>(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -64,6 +69,21 @@ const ProductDetail = () => {
     };
 
     fetchProduct();
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        setAuthModalOpen(false);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [id]);
 
   useEffect(() => {
@@ -79,15 +99,43 @@ const ProductDetail = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [id]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-neon" /></div>;
-  if (!product) return <Navigate to="/" replace />;
+  const handleGetFreeProduct = async () => {
+    if (!product || !session) return;
+    setIsProcessing(true);
+    toast.info("Registrando acceso al producto...");
+
+    try {
+        const { error } = await supabase.from('orders').insert({
+            user_id: session.user.id,
+            product_id: product.id,
+            amount: 0,
+            status: 'approved'
+        });
+
+        if (error) throw error;
+
+        toast.success("¡Acceso concedido! Revisa tu correo para más detalles.");
+        
+    } catch (error: any) {
+        console.error("Error creating order for free product:", error);
+        toast.error("Error al registrar el producto: " + error.message);
+    } finally {
+        setIsProcessing(false);
+    }
+  };
 
   const handleCheckout = async () => {
     if (!product) return;
 
-    // Si es gratis, lógica directa (por ahora alert, luego descarga)
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+        setAuthModalOpen(true);
+        return;
+    }
+
     if (product.is_free) {
-        toast.success("¡Producto gratuito! Iniciando descarga...");
+        await handleGetFreeProduct();
         return;
     }
 
@@ -116,8 +164,12 @@ const ProductDetail = () => {
     }
   };
 
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-neon" /></div>;
+  if (!product) return <Navigate to="/" replace />;
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans pb-20 md:pb-0">
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
       <Navbar />
 
       <main className="pt-32 pb-12 container mx-auto px-4">
@@ -130,7 +182,6 @@ const ProductDetail = () => {
           
           {/* Left Column: Visuals */}
           <div className="space-y-6 lg:sticky lg:top-24">
-            {/* CHANGED: Removed fixed aspect ratio, using h-auto and object-contain */}
             <div className="w-full rounded-xl overflow-hidden border border-border relative bg-muted/20 group shadow-2xl shadow-neon/5">
               {product.image_url ? (
                   <img src={product.image_url} alt={product.title} className="w-full h-auto object-contain max-h-[600px] mx-auto" />
@@ -196,7 +247,6 @@ const ProductDetail = () => {
                       </p>
                   </div>
                   
-                  {/* Discount Badge */}
                   {product.original_price_display && !product.is_free && (
                      <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-1 rounded text-xs font-bold uppercase tracking-wider animate-pulse">
                         Oferta Limitada
@@ -220,7 +270,6 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* Features List */}
             <div className="mt-12">
                <h3 className="text-sm font-bold text-foreground uppercase tracking-widest mb-6">Lo que incluye el sistema:</h3>
                <ul className="grid gap-4">
@@ -237,7 +286,6 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* --- WHO IS THIS FOR --- */}
         <section className="py-12 border-t border-border mb-12">
             <h3 className="text-2xl font-bold text-foreground mb-8 text-center uppercase">¿Es para vos?</h3>
             <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -262,7 +310,6 @@ const ProductDetail = () => {
             </div>
         </section>
 
-        {/* --- CROSS SELL --- */}
         {otherProducts.length > 0 && (
           <section className="border-t border-border pt-16">
             <h3 className="text-xl font-bold text-muted-foreground mb-8 uppercase tracking-widest text-center">Completa tu Arsenal</h3>
@@ -290,7 +337,6 @@ const ProductDetail = () => {
         )}
       </main>
       
-      {/* --- MOBILE STICKY CTA --- */}
       <div 
         className={`fixed bottom-0 left-0 w-full bg-background/80 backdrop-blur-xl border-t border-neon/20 p-4 md:hidden z-50 transition-transform duration-300 ${showSticky ? 'translate-y-0' : 'translate-y-full'}`}
       >
