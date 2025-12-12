@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Package, ArrowRight, ShoppingBag } from "lucide-react";
+import { Loader2, Package, ArrowRight, ShoppingBag, LogOut } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 
 interface Order {
@@ -33,17 +33,22 @@ const Account = () => {
         return;
       }
       setSession(session);
-
+      
       const { data: ordersData, error } = await supabase
         .from('orders')
         .select(`
-          id,
-          status,
-          products ( id, title, short_description, image_url )
+          id, 
+          status, 
+          products (
+            id, 
+            title, 
+            short_description, 
+            image_url
+          )
         `)
         .eq('user_id', session.user.id)
         .eq('status', 'approved');
-
+      
       if (error) {
         console.error("Error fetching orders:", error);
       } else {
@@ -51,9 +56,14 @@ const Account = () => {
       }
       setLoading(false);
     };
-
+    
     getSessionAndData();
   }, [navigate]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
 
   if (loading) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -63,9 +73,17 @@ const Account = () => {
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
       <main className="container mx-auto px-4 pt-32 pb-20">
-        <h1 className="text-4xl font-bold mb-2">Mi Arsenal</h1>
-        <p className="text-muted-foreground mb-8">Aquí están todos los productos que has adquirido.</p>
-
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Mi Arsenal</h1>
+            <p className="text-muted-foreground">Aquí están todos los productos que has adquirido.</p>
+          </div>
+          <Button onClick={handleLogout} variant="outline" className="gap-2">
+            <LogOut className="w-4 h-4" />
+            Cerrar Sesión
+          </Button>
+        </div>
+        
         {orders.length === 0 ? (
           <div className="text-center py-20 border border-dashed rounded-lg">
             <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground" />
@@ -82,16 +100,23 @@ const Account = () => {
                 <CardHeader className="p-0">
                   <div className="aspect-video bg-muted">
                     {order.products.image_url && (
-                      <img src={order.products.image_url} alt={order.products.title} className="h-full w-full object-cover" />
+                      <img 
+                        src={order.products.image_url} 
+                        alt={order.products.title} 
+                        className="h-full w-full object-cover" 
+                      />
                     )}
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">
                   <h2 className="text-xl font-bold">{order.products.title}</h2>
-                  <p className="text-sm text-muted-foreground mt-2 mb-4 line-clamp-2">{order.products.short_description}</p>
+                  <p className="text-sm text-muted-foreground mt-2 mb-4 line-clamp-2">
+                    {order.products.short_description}
+                  </p>
                   <Button asChild className="w-full">
                     <Link to={`/my-products/${order.products.id}`}>
-                      Acceder al Contenido <ArrowRight className="ml-2 h-4 w-4" />
+                      Acceder al Contenido
+                      <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
                 </CardContent>
