@@ -94,11 +94,11 @@ const PromptGallery = () => {
               <Dialog key={item.id} onOpenChange={(open) => !open && setSelectedItem(null)}>
                 <DialogTrigger asChild onClick={() => setSelectedItem(item)}>
                   <div className="group relative aspect-[3/4] overflow-hidden rounded-xl bg-muted cursor-pointer border border-transparent hover:border-neon/50 transition-all shadow-sm hover:shadow-[0_0_20px_rgba(212,232,58,0.15)]">
-                    {/* Image */}
+                    {/* Image - Removed transform-gpu to prevent rendering artifacts */}
                     <img 
                       src={item.image_url} 
                       alt="Generación IA" 
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110 transform-gpu"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       loading="lazy"
                     />
                     
