@@ -4,16 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowRight, Zap, CheckCircle2, Lock, XCircle, Star, Quote, Loader2, Timer, TrendingUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ButtonColorful } from "@/components/ui/button-colorful";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { PillButton } from "@/components/PillButton";
 
 interface Product {
   id: string;
@@ -56,27 +54,6 @@ const Index = () => {
     fetchProducts();
   }, []);
 
-  const testimonials = [
-    {
-      name: "Carlos M.",
-      role: "Freelancer",
-      content: "Con el flujo de n8n de la guía dejé de pagar cuatro herramientas y me ahorré más de USD 200 al mes. Es absurdo que esto cueste menos que una cena. Siento que por primera vez tengo un sistema, no un truquito.",
-      initials: "CM"
-    },
-    {
-      name: "Sofia R.",
-      role: "Agencia de Marketing",
-      content: "Implementé el PLAN 1K un lunes. El jueves ya había cerrado mi primer cliente de USD 800 con un servicio de IA armado solo con las plantillas. No fue magia, fue seguir el paso a paso y animarme a ofrecerlo.",
-      initials: "SR"
-    },
-    {
-      name: "David K.",
-      role: "Developer",
-      content: "Pensé que ya sabía de IA hasta que vi cómo empaquetar y vender infraestructura completa, no solo scripts sueltos. Con el primer cliente recuperé más de diez veces lo que pagué por el pack. Jordi está jugando otro juego.",
-      initials: "DK"
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-neon selection:text-black font-sans">
       <Navbar />
@@ -110,15 +87,13 @@ const Index = () => {
           </p>
           
           <div className="flex flex-col items-center gap-4">
-            <a href="#products" className="w-full sm:w-auto px-4 sm:px-0">
-              <ButtonColorful 
-                className="w-full h-auto px-8 py-6 text-lg font-bold tracking-wider uppercase hover:scale-105 transition-transform border-2 border-neon/50 rounded-xl animate-pulse-glow"
-              >
+            <a href="#products">
+              <PillButton>
                 <span className="flex items-center justify-center">
                   EMPEZAR A FACTURAR CON IA
                   <ArrowRight className="ml-3 h-5 w-5" />
                 </span>
-              </ButtonColorful>
+              </PillButton>
             </a>
             <div className="flex flex-wrap justify-center gap-3 mt-4">
               <span className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-[10px] border border-border">+1500 implementadores</span>
