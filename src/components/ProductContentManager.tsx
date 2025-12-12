@@ -96,34 +96,28 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
   };
 
   const handleDeleteContent = async (contentItem: ProductContent) => {
-    if (!confirm("¿Estás seguro? Esto eliminará permanentemente este contenido y sus archivos asociados.")) return;
+    if (!confirm("¿Estás seguro? Esto eliminará permanentemente este contenido.")) return;
     
     setLoading(true);
     
     try {
-      // If it's a file, delete it from storage first
+      // If it's a file, try to delete from storage
       if (contentItem.content_type === 'file' && contentItem.content_url) {
         try {
             const url = new URL(contentItem.content_url);
             const pathParts = url.pathname.split('/');
-            // Supabase storage URLs usually contain /storage/v1/object/public/{bucket_name}/{path}
-            // We need to find where the bucket name ends to get the path
+            // Supabase storage URLs usually look like /storage/v1/object/public/{bucket_name}/{path}
+            // We search for the bucket name to know where the path starts
             const bucketIndex = pathParts.indexOf('product-images');
             if (bucketIndex !== -1) {
                 const filePath = pathParts.slice(bucketIndex + 1).join('/');
-                const { error: storageError } = await supabase
-                .storage
-                .from('product-images')
-                .remove([filePath]);
-                
-                if (storageError) console.error("Storage delete error:", storageError);
+                await supabase.storage.from('product-images').remove([filePath]);
             }
         } catch (e) {
             console.error("Error parsing URL for deletion", e);
         }
       }
       
-      // Delete the database record
       const { error: dbError } = await supabase
         .from('product_content')
         .delete()
@@ -178,7 +172,7 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl h-[85vh] flex flex-col p-0 gap-0 bg-background border-border overflow-hidden">
-        <DialogHeader className="p-6 border-b border-border bg-muted/10">
+        <DialogHeader className="p-6 border-b border-border bg-muted/10 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-xl">
              Gestor de Contenido: <span className="text-neon">{product?.title}</span>
           </DialogTitle>
@@ -187,9 +181,9 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden h-full">
           {/* Add New Content Form - Left Panel */}
-          <div className="w-full md:w-1/3 p-6 border-r border-border bg-card overflow-y-auto">
+          <div className="w-full md:w-1/3 p-6 border-r border-border bg-card overflow-y-auto shrink-0">
             <h3 className="font-bold mb-4 flex items-center gap-2">
                 <Plus className="w-4 h-4 text-neon" /> Nuevo Contenido
             </h3>
@@ -227,7 +221,7 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
                         type="file" 
                         onChange={handleFileUpload} 
                         disabled={isUploading}
-                        className="cursor-pointer"
+                        className="cursor-pointer text-xs"
                     />
                     {isUploading && (
                         <div className="flex items-center gap-2 mt-2 text-xs text-neon animate-pulse">
@@ -235,8 +229,8 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
                         </div>
                     )}
                     {newContent.content_url && !isUploading && (
-                        <div className="mt-2 text-xs text-green-500 flex items-center gap-1 font-medium bg-green-500/10 p-2 rounded">
-                            <LinkIcon className="w-3 h-3" /> Archivo listo para guardar
+                        <div className="mt-2 text-xs text-green-500 flex items-center gap-1 font-medium bg-green-500/10 p-2 rounded break-all">
+                            <LinkIcon className="w-3 h-3 shrink-0" /> Archivo listo
                         </div>
                     )}
                 </div>
@@ -251,9 +245,6 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
                     onChange={e => setNewContent(p => ({ ...p, content_url: e.target.value }))}
                     className="bg-background/50"
                     />
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                        Asegúrate de usar el link de "Insertar" o "Embed".
-                    </p>
                 </div>
                 )}
 
@@ -280,26 +271,26 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
           </div>
           
           {/* Existing Content List - Right Panel */}
-          <div className="flex-1 bg-muted/5 flex flex-col overflow-hidden">
-             <div className="p-6 border-b border-border">
+          <div className="flex-1 bg-muted/5 flex flex-col overflow-hidden w-full md:w-2/3">
+             <div className="p-6 border-b border-border shrink-0">
                 <h3 className="font-bold flex items-center justify-between">
                     <span>Contenido Existente</span>
                     <Badge variant="outline">{content.length} items</Badge>
                 </h3>
              </div>
              
-             <ScrollArea className="flex-1 p-6">
+             <ScrollArea className="flex-1 p-6 h-full w-full">
                 {content.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-lg p-12">
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-lg p-12 min-h-[200px]">
                     <AlertCircle className="w-10 h-10 mb-4 opacity-50" />
                     <p>Este producto aún no tiene contenido.</p>
                 </div>
                 ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 pb-12">
                     {content.map((item, index) => (
                     <div 
                         key={item.id} 
-                        className="group flex items-center gap-3 p-4 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-neon/30 transition-all"
+                        className="group flex items-center gap-3 p-4 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-neon/30 transition-all relative overflow-hidden w-full"
                     >
                         {/* Icon Container */}
                         <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0 border border-border group-hover:bg-neon/10 group-hover:text-neon transition-colors">
@@ -309,26 +300,26 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
                         </div>
 
                         {/* Text Content - min-w-0 ensures truncation works */}
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 pr-2">
                             <div className="flex items-center gap-2 mb-0.5">
-                                <Badge variant="secondary" className="text-[10px] h-4 px-1 rounded-sm uppercase">
+                                <Badge variant="secondary" className="text-[10px] h-4 px-1 rounded-sm uppercase shrink-0">
                                     {index + 1}
                                 </Badge>
-                                <h4 className="font-bold text-sm truncate pr-2" title={item.title}>
+                                <h4 className="font-bold text-sm truncate" title={item.title}>
                                     {item.title}
                                 </h4>
                             </div>
-                            <p className="text-xs text-muted-foreground truncate font-mono opacity-70" title={item.content_url || 'Texto'}>
+                            <p className="text-xs text-muted-foreground truncate font-mono opacity-70 block w-full" title={item.content_url || 'Texto'}>
                                 {item.content_type === 'text' ? '(Contenido de texto)' : item.content_url}
                             </p>
                         </div>
 
-                        {/* Actions - Fixed width ensures button is always visible */}
-                        <div className="shrink-0 flex items-center border-l border-border pl-3 ml-2">
+                        {/* Actions - Fixed width ensuring it's never covered */}
+                        <div className="shrink-0 flex items-center pl-2 border-l border-border">
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                className="h-9 w-9 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors z-10"
                                 onClick={() => handleDeleteContent(item)}
                                 disabled={loading}
                                 title="Eliminar contenido"
