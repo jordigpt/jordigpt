@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Terminal, Menu, X, Sparkles, User, ShieldCheck } from "lucide-react";
+import { Terminal, Menu, X, Sparkles, User, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import {
@@ -34,8 +34,8 @@ const Navbar = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Removed Resources from here to treat it as a primary link
   const navLinks = [
-    { name: "RECURSOS", href: "/#products" },
     { name: "FAQ", href: "/#faq" },
   ];
 
@@ -79,12 +79,19 @@ const Navbar = () => {
         
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
+          <a 
+            href="/#products" 
+            className="text-sm font-bold text-foreground hover:text-neon transition-colors flex items-center gap-2"
+          >
+            <Zap className="w-4 h-4 text-neon" /> RECURSOS IA
+          </a>
           <Link 
             to="/gallery" 
             className="text-sm font-bold text-foreground hover:text-neon transition-colors flex items-center gap-2"
           >
             <Sparkles className="w-4 h-4 text-neon" /> PROMPT GALLERY
           </Link>
+          
           {navLinks.map((link) => (
             <a 
               key={link.name}
@@ -133,11 +140,20 @@ const Navbar = () => {
                       </Link>
                     </SheetClose>
                   )}
+                  
+                  {/* Recursos IA Mobile */}
+                  <SheetClose asChild>
+                    <a href="/#products" className="text-lg font-bold text-foreground hover:text-neon transition-colors flex items-center gap-2">
+                       <Zap className="w-5 h-5 text-neon" /> RECURSOS IA
+                    </a>
+                  </SheetClose>
+
                   <SheetClose asChild>
                     <Link to="/gallery" className="text-lg font-bold text-foreground hover:text-neon transition-colors flex items-center gap-2">
                        <Sparkles className="w-5 h-5 text-neon" /> PROMPT GALLERY
                     </Link>
                   </SheetClose>
+
                   {navLinks.map((link) => (
                     <SheetClose key={link.name} asChild>
                       <a 
