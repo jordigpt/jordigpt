@@ -92,7 +92,7 @@ const Admin = () => {
   const [promptForm, setPromptForm] = useState({
       image_url: "",
       prompt: "",
-      model_info: "Midjourney v6"
+      model_info: "NanoBanana PRO"
   });
   const [promptUploading, setPromptUploading] = useState(false);
 
@@ -320,7 +320,7 @@ const Admin = () => {
         toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
         toast({ title: "Prompt agregado a la galería" });
-        setPromptForm({ image_url: "", prompt: "", model_info: "Midjourney v6" });
+        setPromptForm({ image_url: "", prompt: "", model_info: "NanoBanana PRO" });
         fetchData();
     }
   };
