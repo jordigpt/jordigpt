@@ -14,14 +14,14 @@ const Login = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) navigate("/admin");
+      if (session) navigate("/account");
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session) navigate("/admin");
+      if (session) navigate("/account");
     });
 
     return () => subscription.unsubscribe();
@@ -60,21 +60,73 @@ const Login = () => {
                     variables: {
                       default: {
                         colors: {
-                          brand: 'hsl(var(--primary))',
-                          brandAccent: 'hsl(var(--primary))',
-                          inputBackground: 'transparent',
-                          inputText: 'hsl(var(--foreground))',
-                          inputBorder: 'hsl(var(--border))',
+                          brand: '#d4e83a', // Neon color
+                          brandAccent: '#c3d635', // Hover neon
+                          brandButtonText: 'black', // Black text ensuring contrast
+                          inputBackground: 'rgba(255,255,255,0.05)',
+                          inputText: 'white',
+                          inputBorder: 'rgba(255,255,255,0.2)',
+                          inputLabelText: 'rgba(255,255,255,0.7)',
+                        },
+                        fontSizes: {
+                          baseInputSize: '16px',
+                        },
+                        radii: {
+                          borderRadiusButton: '8px',
+                          inputBorderRadius: '8px',
                         },
                       },
                     },
+                    style: {
+                        button: {
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase',
+                            letterSpacing: '1px',
+                            fontSize: '0.875rem',
+                            padding: '12px 24px',
+                        },
+                        anchor: {
+                            color: '#d4e83a',
+                            fontSize: '0.875rem',
+                        },
+                        label: {
+                            color: '#9ca3af', // Gray-400
+                            marginBottom: '4px',
+                            fontSize: '0.875rem',
+                        }
+                    },
                     className: {
-                      button: 'bg-neon text-black hover:bg-neon/90 font-bold',
-                      input: 'bg-background/50 border-input text-foreground',
+                        container: 'w-full',
+                        button: 'w-full !bg-neon !text-black hover:!bg-neon/90 transition-all shadow-[0_0_15px_rgba(212,232,58,0.2)]',
+                        input: '!bg-background/50 !border-border text-foreground focus:!border-neon transition-colors',
                     }
                   }}
                   providers={[]}
                   theme="dark"
+                  localization={{
+                    variables: {
+                      sign_in: {
+                        email_label: 'Correo Electrónico',
+                        password_label: 'Contraseña',
+                        button_label: 'INICIAR SESIÓN',
+                        loading_button_label: 'ACCEDIENDO...',
+                        link_text: '¿Ya tienes cuenta? Inicia sesión',
+                      },
+                      sign_up: {
+                        email_label: 'Correo Electrónico',
+                        password_label: 'Contraseña',
+                        button_label: 'CREAR CUENTA',
+                        loading_button_label: 'CREANDO...',
+                        link_text: '¿No tienes cuenta? Regístrate',
+                      },
+                      forgotten_password: {
+                        link_text: '¿Olvidaste tu contraseña?',
+                        button_label: 'RECUPERAR CONTRASEÑA',
+                        loading_button_label: 'ENVIANDO...',
+                        email_label: 'Correo Electrónico',
+                      }
+                    }
+                  }}
                 />
               ) : (
                 <Alert>

@@ -111,30 +111,31 @@ const Account = () => {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {purchasedProducts.map(product => (
-              <Card key={product.id} className="overflow-hidden hover:border-neon/50 transition-colors">
+              <Card key={product.id} className="overflow-hidden hover:border-neon/50 transition-colors border-border group bg-card">
                 <CardHeader className="p-0">
-                  <div className="aspect-video bg-muted relative">
+                  <div className="aspect-video bg-muted relative overflow-hidden">
                     {product.image_url ? (
                       <img 
                         src={product.image_url} 
                         alt={product.title} 
-                        className="h-full w-full object-cover" 
+                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" 
                       />
                     ) : (
                         <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                              <span className="text-2xl font-bold text-gray-700">JG</span>
                         </div>
                     )}
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <h2 className="text-xl font-bold">{product.title}</h2>
-                  <p className="text-sm text-muted-foreground mt-2 mb-4 line-clamp-2">
+                  <h2 className="text-xl font-bold uppercase tracking-tight mb-2 truncate" title={product.title}>{product.title}</h2>
+                  <p className="text-sm text-muted-foreground mb-6 line-clamp-2 h-10">
                     {product.short_description}
                   </p>
-                  <Button asChild className="w-full bg-secondary hover:bg-neon hover:text-black font-bold transition-all">
+                  <Button asChild className="w-full bg-neon text-black hover:bg-neon/90 font-bold transition-all shadow-[0_0_15px_rgba(212,232,58,0.1)] hover:shadow-[0_0_20px_rgba(212,232,58,0.4)]">
                     <Link to={`/my-products/${product.id}`}>
-                      Acceder al Contenido
+                      ACCEDER AL CONTENIDO
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
