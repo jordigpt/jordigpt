@@ -124,13 +124,13 @@ const Index = () => {
                     <img 
                       src="/jordi-profile.png" 
                       alt="Jordi" 
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 transform group-hover:scale-105" 
+                      className="w-full h-full object-cover transition-all duration-700 transform group-hover:scale-105" 
                     />
                  </div>
                  {/* Decorativo */}
                  <div className="absolute -bottom-6 -right-6 bg-background border border-border p-4 rounded-lg shadow-xl hidden md:block z-10">
-                    <p className="text-neon font-bold text-2xl font-mono">+5 Años</p>
-                    <p className="text-xs text-muted-foreground uppercase tracking-widest">En Automatización</p>
+                    <p className="text-neon font-bold text-xl font-mono">Excelencia</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Operativa</p>
                  </div>
               </div>
 
