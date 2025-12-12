@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, Zap, CheckCircle2, Lock, XCircle, Star, Quote, Loader2, Timer, TrendingUp } from "lucide-react";
+import { ArrowRight, Zap, CheckCircle2, Lock, XCircle, Star, Quote, Loader2, Timer, TrendingUp, User } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -109,6 +109,61 @@ const Index = () => {
           <span className="flex items-center gap-2"><CheckCircle2 className="text-neon w-4 h-4"/> 100% probado en negocios reales</span>
           <span className="flex items-center gap-2"><CheckCircle2 className="text-neon w-4 h-4"/> Resultados medibles</span>
           <span className="flex items-center gap-2"><CheckCircle2 className="text-neon w-4 h-4"/> Acceso inmediato</span>
+        </div>
+      </section>
+
+      {/* About Me Section (New) */}
+      <section className="py-24 bg-background relative overflow-hidden">
+        <div className="container mx-auto px-4">
+           <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+              
+              {/* Image Side */}
+              <div className="relative order-2 md:order-1">
+                 <div className="absolute inset-0 bg-neon blur-[80px] opacity-20 rounded-full"></div>
+                 <div className="relative aspect-[4/5] md:aspect-square w-full max-w-md mx-auto rounded-2xl overflow-hidden border border-border shadow-2xl bg-muted/20">
+                    {/* Placeholder for now - user will replace */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 text-muted-foreground">
+                        <User className="w-24 h-24 opacity-20" />
+                        <span className="absolute bottom-4 text-xs uppercase tracking-widest opacity-50">Foto de Autor</span>
+                    </div>
+                    {/* Cuando tengas la foto, descomenta y usa esto:
+                    <img src="/tu-foto.jpg" alt="Jordi" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" /> 
+                    */}
+                 </div>
+                 {/* Decorativo */}
+                 <div className="absolute -bottom-6 -right-6 bg-background border border-border p-4 rounded-lg shadow-xl hidden md:block">
+                    <p className="text-neon font-bold text-2xl font-mono">+5 Años</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-widest">En Automatización</p>
+                 </div>
+              </div>
+
+              {/* Text Side */}
+              <div className="order-1 md:order-2 space-y-6">
+                 <div className="inline-block">
+                    <h2 className="text-3xl md:text-5xl font-bold tracking-tighter uppercase mb-2">
+                       No soy un <br/> <span className="text-neon">Gurú de la IA.</span>
+                    </h2>
+                    <div className="h-1 w-20 bg-neon"></div>
+                 </div>
+                 
+                 <div className="prose prose-invert text-muted-foreground text-lg leading-relaxed">
+                    <p>
+                       Soy Jordi, y al igual que vos, me cansé de ver cómo la tecnología avanzaba mientras mis ingresos se quedaban estancados.
+                    </p>
+                    <p>
+                       No te voy a vender humo ni promesas de millonario de la noche a la mañana. Lo que vas a encontrar acá son <strong>los mismos sistemas exactos</strong> que desarrollé para automatizar mi propio trabajo y multiplicar mi facturación sin clonarme a mí mismo.
+                    </p>
+                    <p>
+                       Mi obsesión es simple: <span className="text-foreground font-medium">Transformar complejidad técnica en dinero real en tu cuenta.</span> Si estás listo para dejar de jugar con ChatGPT y empezar a construir activos digitales serios, estás en el lugar correcto.
+                    </p>
+                 </div>
+
+                 <div className="pt-4">
+                   <img src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Signature_sample.svg" alt="Firma" className="h-12 opacity-50 invert" />
+                 </div>
+              </div>
+
+           </div>
         </div>
       </section>
 
