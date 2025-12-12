@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw, Upload, Image as ImageIcon, Sparkles, Terminal } from "lucide-react";
+import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw, Upload, Image as ImageIcon, Sparkles, Terminal, FolderKanban } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { AdminAIAssistant } from "@/components/AdminAIAssistant";
+import { ProductContentManager } from "@/components/ProductContentManager";
 
 // Interfaces
 interface Product {
@@ -95,6 +96,10 @@ const Admin = () => {
       model_info: "NanoBanana PRO"
   });
   const [promptUploading, setPromptUploading] = useState(false);
+
+  // Content Manager State
+  const [contentManagerOpen, setContentManagerOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     checkUser();
@@ -186,7 +191,7 @@ const Admin = () => {
       const fileName = `products/${Math.random()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('product-images') // Reusing bucket, assuming folder structure works or flat
+        .from('product-images')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
@@ -281,6 +286,11 @@ const Admin = () => {
     }
   };
 
+  const openContentManager = (product: Product) => {
+    setSelectedProduct(product);
+    setContentManagerOpen(true);
+  };
+
   // --- PROMPT GALLERY HANDLERS ---
   const handlePromptImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -292,7 +302,7 @@ const Admin = () => {
       const fileName = `gallery/${Math.random()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('product-images') // Storing in same bucket, separate folder
+        .from('product-images')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
@@ -339,6 +349,7 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-background text-foreground pb-20">
       <Navbar />
+      <ProductContentManager product={selectedProduct} open={contentManagerOpen} onOpenChange={setContentManagerOpen} />
       
       <div className="container mx-auto px-4 pt-32">
         <div className="flex justify-between items-center mb-8">
@@ -541,6 +552,9 @@ const Admin = () => {
                                 <p className="text-xs font-mono mt-1 text-neon">{product.price_display}</p>
                             </div>
                             <div className="flex gap-2 w-full md:w-auto mt-4 md:mt-0">
+                                <Button variant="secondary" size="sm" onClick={() => openContentManager(product)} className="gap-2">
+                                    <FolderKanban className="w-4 h-4" /> Contenido
+                                </Button>
                                 <Button variant="secondary" size="sm" onClick={() => handleEdit(product)}>Edit</Button>
                                 <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => handleDelete(product.id)}>
                                     <Trash2 className="w-4 h-4" />

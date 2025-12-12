@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Terminal, Menu, X, Sparkles } from "lucide-react";
+import { Terminal, Menu, X, Sparkles, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import {
@@ -8,8 +8,25 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 const Navbar = () => {
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const navLinks = [
     { name: "RECURSOS", href: "/#products" },
     { name: "FAQ", href: "/#faq" },
@@ -45,9 +62,17 @@ const Navbar = () => {
             </a>
           ))}
           <ModeToggle />
-          <Link to="/login" className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground text-xs font-bold tracking-widest border border-border rounded uppercase transition-all hover:border-neon/50">
-            Login
-          </Link>
+          {session ? (
+            <Link to="/account">
+              <Button variant="outline" className="border-neon/50 text-neon hover:bg-neon hover:text-black gap-2">
+                <User className="w-4 h-4" /> Mis Productos
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/login" className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground text-xs font-bold tracking-widest border border-border rounded uppercase transition-all hover:border-neon/50">
+              Login
+            </Link>
+          )}
         </div>
 
         {/* Mobile Menu */}
@@ -71,6 +96,13 @@ const Navbar = () => {
                 </div>
 
                 <div className="flex flex-col gap-6">
+                  {session && (
+                    <SheetClose asChild>
+                      <Link to="/account" className="text-lg font-bold text-foreground hover:text-neon transition-colors flex items-center gap-2">
+                         <User className="w-5 h-5 text-neon" /> MIS PRODUCTOS
+                      </Link>
+                    </SheetClose>
+                  )}
                   <SheetClose asChild>
                     <Link to="/gallery" className="text-lg font-bold text-foreground hover:text-neon transition-colors flex items-center gap-2">
                        <Sparkles className="w-5 h-5 text-neon" /> PROMPT GALLERY
@@ -86,11 +118,13 @@ const Navbar = () => {
                       </a>
                     </SheetClose>
                   ))}
-                  <SheetClose asChild>
-                    <Link to="/login" className="text-lg font-medium text-muted-foreground hover:text-neon transition-colors">
-                      LOGIN
-                    </Link>
-                  </SheetClose>
+                  {!session && (
+                    <SheetClose asChild>
+                      <Link to="/login" className="text-lg font-medium text-muted-foreground hover:text-neon transition-colors">
+                        LOGIN
+                      </Link>
+                    </SheetClose>
+                  )}
                 </div>
 
                 <div className="mt-auto pt-8 border-t border-border">
