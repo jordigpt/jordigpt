@@ -75,7 +75,7 @@ const Index = () => {
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 leading-tight">
             FACTURÁ <span className="text-neon">CON IA</span>
             <br />
-            <span className="text-4xl md:text-6xl text-muted-foreground">MIENTRAS OTROS DUDAN</span>
+            <span className="text-3xl md:text-6xl text-muted-foreground">MIENTRAS OTROS DUDAN</span>
           </h1>
           
           <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-4 leading-relaxed">
