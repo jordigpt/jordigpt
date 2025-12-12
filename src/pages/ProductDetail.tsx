@@ -168,7 +168,7 @@ const ProductDetail = () => {
                </h1>
                
                <div className="prose prose-invert prose-lg max-w-none mb-8">
-                 <p className="text-foreground/80 leading-relaxed text-lg border-l-2 border-neon pl-4">
+                 <p className="text-foreground/80 leading-relaxed text-lg border-l-2 border-neon pl-4 whitespace-pre-wrap">
                    {product.full_description}
                  </p>
                </div>
