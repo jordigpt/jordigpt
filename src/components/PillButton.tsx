@@ -11,10 +11,10 @@ export const PillButton = ({ children, className, ...props }: PillButtonProps) =
     <button
       className={cn(
         // Estilos base
-        'inline-flex items-center justify-center',
-        'font-bold uppercase tracking-wider text-black',
+        'inline-flex items-center justify-center whitespace-nowrap',
+        'font-bold uppercase tracking-wide text-black text-sm',
         // Forma y tamaño
-        'rounded-full px-10 py-5',
+        'rounded-full px-8 py-4',
         // Fondo y Borde (Efecto "Glassy")
         'border border-white/20 backdrop-blur-md',
         // Gradiente de fondo con tu color de marca
