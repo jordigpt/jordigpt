@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Terminal, Menu, X, Sparkles, User } from "lucide-react";
+import { Terminal, Menu, X, Sparkles, User, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import {
@@ -12,16 +12,23 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 
+const ADMIN_EMAIL = "jordithecreative@gmail.com";
+
 const Navbar = () => {
   const [session, setSession] = useState<Session | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-    });
+      setIsAdmin(session?.user?.email === ADMIN_EMAIL);
+    };
+    getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      setIsAdmin(session?.user?.email === ADMIN_EMAIL);
     });
 
     return () => subscription.unsubscribe();
@@ -31,6 +38,32 @@ const Navbar = () => {
     { name: "RECURSOS", href: "/#products" },
     { name: "FAQ", href: "/#faq" },
   ];
+
+  const renderUserActions = () => {
+    if (isAdmin) {
+      return (
+        <Link to="/admin">
+          <Button variant="outline" className="border-neon/50 text-neon hover:bg-neon hover:text-black gap-2">
+            <ShieldCheck className="w-4 h-4" /> Admin Panel
+          </Button>
+        </Link>
+      );
+    }
+    if (session) {
+      return (
+        <Link to="/account">
+          <Button variant="outline" className="border-input hover:border-neon/50 hover:text-neon gap-2">
+            <User className="w-4 h-4" /> Mis Productos
+          </Button>
+        </Link>
+      );
+    }
+    return (
+      <Link to="/login" className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground text-xs font-bold tracking-widest border border-border rounded uppercase transition-all hover:border-neon/50">
+        Login
+      </Link>
+    );
+  };
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -62,17 +95,7 @@ const Navbar = () => {
             </a>
           ))}
           <ModeToggle />
-          {session ? (
-            <Link to="/account">
-              <Button variant="outline" className="border-neon/50 text-neon hover:bg-neon hover:text-black gap-2">
-                <User className="w-4 h-4" /> Mis Productos
-              </Button>
-            </Link>
-          ) : (
-            <Link to="/login" className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground text-xs font-bold tracking-widest border border-border rounded uppercase transition-all hover:border-neon/50">
-              Login
-            </Link>
-          )}
+          {renderUserActions()}
         </div>
 
         {/* Mobile Menu */}
@@ -96,7 +119,14 @@ const Navbar = () => {
                 </div>
 
                 <div className="flex flex-col gap-6">
-                  {session && (
+                  {isAdmin && (
+                    <SheetClose asChild>
+                      <Link to="/admin" className="text-lg font-bold text-foreground hover:text-neon transition-colors flex items-center gap-2">
+                         <ShieldCheck className="w-5 h-5 text-neon" /> ADMIN PANEL
+                      </Link>
+                    </SheetClose>
+                  )}
+                  {session && !isAdmin && (
                     <SheetClose asChild>
                       <Link to="/account" className="text-lg font-bold text-foreground hover:text-neon transition-colors flex items-center gap-2">
                          <User className="w-5 h-5 text-neon" /> MIS PRODUCTOS

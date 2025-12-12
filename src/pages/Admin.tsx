@@ -54,6 +54,8 @@ interface PromptItem {
     created_at: string;
 }
 
+const ADMIN_EMAIL = "jordithecreative@gmail.com";
+
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -102,14 +104,23 @@ const Admin = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    checkUser();
-    fetchData();
+    const initializeAdmin = async () => {
+      await checkUser();
+      fetchData();
+    };
+    initializeAdmin();
   }, []);
 
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       navigate("/login");
+      return;
+    }
+    if (session.user.email !== ADMIN_EMAIL) {
+      toast({ title: "Acceso Denegado", description: "No tienes permisos para ver esta página.", variant: "destructive" });
+      navigate("/account");
+      return;
     }
   };
 
