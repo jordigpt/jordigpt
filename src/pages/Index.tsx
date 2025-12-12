@@ -118,20 +118,17 @@ const Index = () => {
            <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
               
               {/* Image Side */}
-              <div className="relative order-2 md:order-1">
-                 <div className="absolute inset-0 bg-neon blur-[80px] opacity-20 rounded-full"></div>
+              <div className="relative order-2 md:order-1 group">
+                 <div className="absolute inset-0 bg-neon blur-[80px] opacity-20 rounded-full group-hover:opacity-30 transition-opacity duration-700"></div>
                  <div className="relative aspect-[4/5] md:aspect-square w-full max-w-md mx-auto rounded-2xl overflow-hidden border border-border shadow-2xl bg-muted/20">
-                    {/* Placeholder for now - user will replace */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 text-muted-foreground">
-                        <User className="w-24 h-24 opacity-20" />
-                        <span className="absolute bottom-4 text-xs uppercase tracking-widest opacity-50">Foto de Autor</span>
-                    </div>
-                    {/* Cuando tengas la foto, descomenta y usa esto:
-                    <img src="/tu-foto.jpg" alt="Jordi" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" /> 
-                    */}
+                    <img 
+                      src="/jordi-profile.png" 
+                      alt="Jordi" 
+                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 transform group-hover:scale-105" 
+                    />
                  </div>
                  {/* Decorativo */}
-                 <div className="absolute -bottom-6 -right-6 bg-background border border-border p-4 rounded-lg shadow-xl hidden md:block">
+                 <div className="absolute -bottom-6 -right-6 bg-background border border-border p-4 rounded-lg shadow-xl hidden md:block z-10">
                     <p className="text-neon font-bold text-2xl font-mono">+5 Años</p>
                     <p className="text-xs text-muted-foreground uppercase tracking-widest">En Automatización</p>
                  </div>
