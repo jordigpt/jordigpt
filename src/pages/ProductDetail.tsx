@@ -1,10 +1,10 @@
-import { useParams, Link, Navigate } from "react-router-dom";
+import { useParams, Link, Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Timer, Star } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Timer, Star, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { AuthModal } from "@/components/AuthModal";
@@ -31,20 +31,23 @@ interface Product {
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
   const [otherProducts, setOtherProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSticky, setShowSticky] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [userHasProduct, setUserHasProduct] = useState(false);
   
   const [session, setSession] = useState<Session | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductAndStatus = async () => {
         if(!id) return;
         setLoading(true);
 
+        // 1. Fetch Product
         const { data: currentProduct, error } = await supabase
             .from('products')
             .select('*')
@@ -58,6 +61,26 @@ const ProductDetail = () => {
         
         setProduct(currentProduct);
 
+        // 2. Fetch User Session
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+
+        // 3. Check if user already owns product
+        if (session && currentProduct) {
+            const { data: existingOrder } = await supabase
+                .from('orders')
+                .select('id')
+                .eq('user_id', session.user.id)
+                .eq('product_id', currentProduct.id)
+                .eq('status', 'approved')
+                .maybeSingle();
+            
+            if (existingOrder) {
+                setUserHasProduct(true);
+            }
+        }
+
+        // 4. Fetch related
         const { data: others } = await supabase
             .from('products')
             .select('*')
@@ -68,16 +91,25 @@ const ProductDetail = () => {
         setLoading(false);
     };
 
-    fetchProduct();
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-        setSession(session);
-    });
+    fetchProductAndStatus();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
         setAuthModalOpen(false);
+        // Re-check ownership if user logs in on this page
+        if (product) {
+             supabase
+                .from('orders')
+                .select('id')
+                .eq('user_id', session.user.id)
+                .eq('product_id', product.id)
+                .eq('status', 'approved')
+                .maybeSingle()
+                .then(({ data }) => {
+                    if (data) setUserHasProduct(true);
+                });
+        }
       }
     });
 
@@ -101,20 +133,41 @@ const ProductDetail = () => {
 
   const handleGetFreeProduct = async () => {
     if (!product || !session) return;
+    
+    // Double check just in case UI state is stale
+    if (userHasProduct) {
+        navigate(`/my-products/${product.id}`);
+        return;
+    }
+
     setIsProcessing(true);
-    toast.info("Registrando acceso al producto...");
+    toast.info("Procesando acceso...");
 
     try {
-        const { error } = await supabase.from('orders').insert({
-            user_id: session.user.id,
-            product_id: product.id,
-            amount: 0,
-            status: 'approved'
-        });
+        // Check duplication again before insert to prevent DB errors
+        const { data: existing } = await supabase
+            .from('orders')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .eq('product_id', product.id)
+            .eq('status', 'approved')
+            .maybeSingle();
 
-        if (error) throw error;
+        if (!existing) {
+            const { error } = await supabase.from('orders').insert({
+                user_id: session.user.id,
+                product_id: product.id,
+                amount: 0,
+                status: 'approved'
+            });
+            if (error) throw error;
+        }
 
-        toast.success("¡Acceso concedido! Revisa tu correo para más detalles.");
+        toast.success("¡Producto añadido a tu arsenal!");
+        // Redirect to the content page
+        setTimeout(() => {
+            navigate(`/my-products/${product.id}`);
+        }, 1000);
         
     } catch (error: any) {
         console.error("Error creating order for free product:", error);
@@ -126,6 +179,11 @@ const ProductDetail = () => {
 
   const handleCheckout = async () => {
     if (!product) return;
+
+    if (userHasProduct) {
+        navigate(`/my-products/${product.id}`);
+        return;
+    }
 
     const { data: { session } } = await supabase.auth.getSession();
 
@@ -257,11 +315,18 @@ const ProductDetail = () => {
                <Button 
                 onClick={handleCheckout}
                 disabled={isProcessing}
-                className="w-full bg-neon text-black hover:bg-neon/90 hover:scale-[1.01] font-bold text-xl h-16 rounded-lg transition-all shadow-[0_0_25px_rgba(212,232,58,0.3)] hover:shadow-[0_0_40px_rgba(212,232,58,0.6)] active:scale-[0.98] uppercase tracking-wide disabled:opacity-70 disabled:cursor-not-allowed"
+                className={`w-full font-bold text-xl h-16 rounded-lg transition-all shadow-[0_0_25px_rgba(212,232,58,0.3)] hover:shadow-[0_0_40px_rgba(212,232,58,0.6)] active:scale-[0.98] uppercase tracking-wide disabled:opacity-70 disabled:cursor-not-allowed ${
+                    userHasProduct 
+                    ? "bg-secondary text-secondary-foreground hover:bg-secondary/90" 
+                    : "bg-neon text-black hover:bg-neon/90 hover:scale-[1.01]"
+                }`}
               >
                 {isProcessing ? <Loader2 className="animate-spin mr-2" /> : null}
-                {isProcessing ? "Procesando..." : product.cta_text} 
-                {!isProcessing && <ArrowRight className="ml-2 w-6 h-6" />}
+                {isProcessing ? "Procesando..." : (
+                    userHasProduct 
+                        ? <span className="flex items-center"><Download className="mr-2 w-6 h-6"/> ACCEDER AHORA</span> 
+                        : (<span>{product.cta_text} { !isProcessing && <ArrowRight className="inline ml-2 w-6 h-6" />}</span>)
+                )} 
               </Button>
               
               <div className="flex justify-center gap-6 mt-6 text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
@@ -349,9 +414,9 @@ const ProductDetail = () => {
                 onClick={handleCheckout} 
                 disabled={isProcessing}
                 size="sm" 
-                className="bg-neon text-black font-bold hover:bg-neon/90 rounded-md px-6 shadow-[0_0_15px_rgba(212,232,58,0.4)] disabled:opacity-70"
+                className={`font-bold rounded-md px-6 shadow-[0_0_15px_rgba(212,232,58,0.4)] disabled:opacity-70 ${userHasProduct ? "bg-secondary text-secondary-foreground" : "bg-neon text-black hover:bg-neon/90"}`}
               >
-                 {isProcessing ? <Loader2 className="animate-spin" /> : product.cta_text}
+                 {isProcessing ? <Loader2 className="animate-spin" /> : (userHasProduct ? "ACCEDER" : product.cta_text)}
               </Button>
           </div>
       </div>

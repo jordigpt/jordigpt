@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Loader2, Plus, Trash2, Upload, Video, FileText, GripVertical } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Loader2, Plus, Trash2, Upload, Video, FileText, Link as LinkIcon, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 interface Product {
   id: string;
@@ -65,7 +67,7 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
 
   const handleAddContent = async () => {
     if (!product || !newContent.title) {
-      toast.error("Title is required.");
+      toast.error("El título es requerido.");
       return;
     }
     
@@ -81,7 +83,7 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
     if (error) {
       toast.error("Error adding content: " + error.message);
     } else {
-      toast.success("Content added!");
+      toast.success("Contenido agregado correctamente!");
       setNewContent({ 
         content_type: 'file', 
         title: '', 
@@ -94,30 +96,30 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
   };
 
   const handleDeleteContent = async (contentItem: ProductContent) => {
-    if (!confirm("Are you sure? This will permanently delete this content.")) return;
+    if (!confirm("¿Estás seguro? Esto eliminará permanentemente este contenido y sus archivos asociados.")) return;
     
     setLoading(true);
     
     try {
       // If it's a file, delete it from storage first
       if (contentItem.content_type === 'file' && contentItem.content_url) {
-        // Extract the file path from the URL
-        const url = new URL(contentItem.content_url);
-        const pathParts = url.pathname.split('/');
-        const storageIndex = pathParts.indexOf('product-images');
-        
-        if (storageIndex !== -1) {
-          const filePath = pathParts.slice(storageIndex).join('/');
-          
-          const { error: storageError } = await supabase
-            .storage
-            .from('product-images')
-            .remove([filePath]);
-          
-          if (storageError) {
-            console.error("Error deleting file from storage:", storageError);
-            // We continue anyway to delete the database record
-          }
+        try {
+            const url = new URL(contentItem.content_url);
+            const pathParts = url.pathname.split('/');
+            // Supabase storage URLs usually contain /storage/v1/object/public/{bucket_name}/{path}
+            // We need to find where the bucket name ends to get the path
+            const bucketIndex = pathParts.indexOf('product-images');
+            if (bucketIndex !== -1) {
+                const filePath = pathParts.slice(bucketIndex + 1).join('/');
+                const { error: storageError } = await supabase
+                .storage
+                .from('product-images')
+                .remove([filePath]);
+                
+                if (storageError) console.error("Storage delete error:", storageError);
+            }
+        } catch (e) {
+            console.error("Error parsing URL for deletion", e);
         }
       }
       
@@ -127,14 +129,12 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
         .delete()
         .eq('id', contentItem.id);
       
-      if (dbError) {
-        throw dbError;
-      }
+      if (dbError) throw dbError;
       
-      toast.success("Content deleted successfully.");
+      toast.success("Contenido eliminado.");
       fetchContent();
     } catch (error: any) {
-      toast.error("Error deleting content: " + error.message);
+      toast.error("Error al eliminar: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -146,12 +146,12 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
     setIsUploading(true);
     const file = e.target.files[0];
     
-    // Sanitize the filename to prevent "Invalid key" errors
+    // Sanitize filename
     const sanitizedFileName = file.name
-      .normalize("NFD") // Decompose accented characters
-      .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/[^a-zA-Z0-9.-]/g, ''); // Remove remaining special characters
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, '-')
+      .replace(/[^a-zA-Z0-9.-]/g, '');
     
     const filePath = `deliverables/${product?.id}/${Date.now()}-${sanitizedFileName}`;
     
@@ -170,144 +170,177 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
         ...prev,
         content_url: urlData.publicUrl
       }));
-      toast.success("File uploaded!");
+      toast.success("Archivo subido correctamente!");
     }
     setIsUploading(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Manage Content for "{product?.title}"</DialogTitle>
+      <DialogContent className="sm:max-w-4xl h-[85vh] flex flex-col p-0 gap-0 bg-background border-border overflow-hidden">
+        <DialogHeader className="p-6 border-b border-border bg-muted/10">
+          <DialogTitle className="flex items-center gap-2 text-xl">
+             Gestor de Contenido: <span className="text-neon">{product?.title}</span>
+          </DialogTitle>
           <DialogDescription>
-            Add, remove, and reorder the deliverables for this product.
+            Agrega archivos descargables, videos o texto para los compradores.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid md:grid-cols-2 gap-8 py-4">
-          {/* Add New Content Form */}
-          <div className="space-y-4 p-4 border rounded-lg sticky top-0 bg-background">
-            <h3 className="font-bold">Add New Content</h3>
-            <div>
-              <Label>Content Type</Label>
-              <Select 
-                value={newContent.content_type} 
-                onValueChange={(v) => setNewContent(p => ({
-                  ...p, 
-                  content_type: v as any
-                }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="file">File Download</SelectItem>
-                  <SelectItem value="video">Video Embed</SelectItem>
-                  <SelectItem value="text">Text / HTML</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Title</Label>
-              <Input 
-                value={newContent.title} 
-                onChange={e => setNewContent(p => ({
-                  ...p, 
-                  title: e.target.value
-                }))}
-              />
-            </div>
-            {newContent.content_type === 'file' && (
-              <div>
-                <Label>Upload File</Label>
+
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+          {/* Add New Content Form - Left Panel */}
+          <div className="w-full md:w-1/3 p-6 border-r border-border bg-card overflow-y-auto">
+            <h3 className="font-bold mb-4 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-neon" /> Nuevo Contenido
+            </h3>
+            <div className="space-y-4">
+                <div>
+                <Label>Tipo de Contenido</Label>
+                <Select 
+                    value={newContent.content_type} 
+                    onValueChange={(v) => setNewContent(p => ({ ...p, content_type: v as any }))}
+                >
+                    <SelectTrigger className="bg-background/50">
+                    <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectItem value="file">Archivo Descargable</SelectItem>
+                    <SelectItem value="video">Video Embed (YouTube/Vimeo)</SelectItem>
+                    <SelectItem value="text">Texto / HTML / Links</SelectItem>
+                    </SelectContent>
+                </Select>
+                </div>
+                <div>
+                <Label>Título (Visible para el usuario)</Label>
                 <Input 
-                  type="file" 
-                  onChange={handleFileUpload} 
-                  disabled={isUploading}
+                    value={newContent.title} 
+                    onChange={e => setNewContent(p => ({ ...p, title: e.target.value }))}
+                    placeholder="Ej: Guía PDF, Video Módulo 1..."
+                    className="bg-background/50"
                 />
-                {isUploading && <Loader2 className="animate-spin mt-2" />}
-                {newContent.content_url && (
-                  <p className="text-xs mt-2 text-muted-foreground truncate">
-                    URL: {newContent.content_url}
-                  </p>
+                </div>
+
+                {newContent.content_type === 'file' && (
+                <div className="p-4 border border-dashed border-border rounded-lg bg-muted/20">
+                    <Label className="mb-2 block">Subir Archivo</Label>
+                    <Input 
+                        type="file" 
+                        onChange={handleFileUpload} 
+                        disabled={isUploading}
+                        className="cursor-pointer"
+                    />
+                    {isUploading && (
+                        <div className="flex items-center gap-2 mt-2 text-xs text-neon animate-pulse">
+                            <Loader2 className="w-3 h-3 animate-spin" /> Subiendo archivo...
+                        </div>
+                    )}
+                    {newContent.content_url && !isUploading && (
+                        <div className="mt-2 text-xs text-green-500 flex items-center gap-1 font-medium bg-green-500/10 p-2 rounded">
+                            <LinkIcon className="w-3 h-3" /> Archivo listo para guardar
+                        </div>
+                    )}
+                </div>
                 )}
-              </div>
-            )}
-            {newContent.content_type === 'video' && (
-              <div>
-                <Label>Video Embed URL</Label>
-                <Input 
-                  placeholder="e.g., https://www.youtube.com/embed/..." 
-                  value={newContent.content_url} 
-                  onChange={e => setNewContent(p => ({
-                    ...p, 
-                    content_url: e.target.value
-                  }))}
-                />
-              </div>
-            )}
-            {newContent.content_type === 'text' && (
-              <div>
-                <Label>Content (HTML supported)</Label>
-                <Textarea 
-                  className="h-32" 
-                  value={newContent.content_text} 
-                  onChange={e => setNewContent(p => ({
-                    ...p, 
-                    content_text: e.target.value
-                  }))}
-                />
-              </div>
-            )}
-            <Button 
-              onClick={handleAddContent} 
-              disabled={loading || isUploading}
-              className="w-full"
-            >
-              {loading ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <>
-                  <Plus className="mr-2 h-4 w-4" /> Add Content
-                </>
-              )}
-            </Button>
+
+                {newContent.content_type === 'video' && (
+                <div>
+                    <Label>URL del Video (Embed)</Label>
+                    <Input 
+                    placeholder="https://www.youtube.com/embed/..." 
+                    value={newContent.content_url} 
+                    onChange={e => setNewContent(p => ({ ...p, content_url: e.target.value }))}
+                    className="bg-background/50"
+                    />
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                        Asegúrate de usar el link de "Insertar" o "Embed".
+                    </p>
+                </div>
+                )}
+
+                {newContent.content_type === 'text' && (
+                <div>
+                    <Label>Contenido (Soporta HTML)</Label>
+                    <Textarea 
+                    className="h-32 bg-background/50 font-mono text-xs" 
+                    value={newContent.content_text} 
+                    onChange={e => setNewContent(p => ({ ...p, content_text: e.target.value }))}
+                    placeholder="<p>Texto de instrucciones...</p>"
+                    />
+                </div>
+                )}
+
+                <Button 
+                onClick={handleAddContent} 
+                disabled={loading || isUploading}
+                className="w-full bg-neon text-black font-bold hover:bg-neon/90 mt-4"
+                >
+                {loading ? <Loader2 className="animate-spin" /> : "AGREGAR AL PRODUCTO"}
+                </Button>
+            </div>
           </div>
           
-          {/* Existing Content List */}
-          <div className="space-y-4">
-            <h3 className="font-bold">Existing Content</h3>
-            {content.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-8">
-                No content yet.
-              </p>
-            ) : (
-              content.map(item => (
-                <div 
-                  key={item.id} 
-                  className="flex items-center gap-4 p-3 border rounded-lg bg-muted/30"
-                >
-                  <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
-                  {item.content_type === 'file' && <Upload className="h-5 w-5 text-muted-foreground" />}
-                  {item.content_type === 'video' && <Video className="h-5 w-5 text-muted-foreground" />}
-                  {item.content_type === 'text' && <FileText className="h-5 w-5 text-muted-foreground" />}
-                  <div className="flex-1">
-                    <p className="font-medium">{item.title}</p>
-                    <p className="text-xs text-muted-foreground truncate max-w-xs">
-                      {item.content_url || "Text Content"}
-                    </p>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => handleDeleteContent(item)}
-                    disabled={loading}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+          {/* Existing Content List - Right Panel */}
+          <div className="flex-1 bg-muted/5 flex flex-col overflow-hidden">
+             <div className="p-6 border-b border-border">
+                <h3 className="font-bold flex items-center justify-between">
+                    <span>Contenido Existente</span>
+                    <Badge variant="outline">{content.length} items</Badge>
+                </h3>
+             </div>
+             
+             <ScrollArea className="flex-1 p-6">
+                {content.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-lg p-12">
+                    <AlertCircle className="w-10 h-10 mb-4 opacity-50" />
+                    <p>Este producto aún no tiene contenido.</p>
                 </div>
-              ))
-            )}
+                ) : (
+                <div className="space-y-3">
+                    {content.map((item, index) => (
+                    <div 
+                        key={item.id} 
+                        className="group flex items-center gap-3 p-4 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-neon/30 transition-all"
+                    >
+                        {/* Icon Container */}
+                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0 border border-border group-hover:bg-neon/10 group-hover:text-neon transition-colors">
+                            {item.content_type === 'file' && <FileText className="h-5 w-5" />}
+                            {item.content_type === 'video' && <Video className="h-5 w-5" />}
+                            {item.content_type === 'text' && <FileText className="h-5 w-5" />}
+                        </div>
+
+                        {/* Text Content - min-w-0 ensures truncation works */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                                <Badge variant="secondary" className="text-[10px] h-4 px-1 rounded-sm uppercase">
+                                    {index + 1}
+                                </Badge>
+                                <h4 className="font-bold text-sm truncate pr-2" title={item.title}>
+                                    {item.title}
+                                </h4>
+                            </div>
+                            <p className="text-xs text-muted-foreground truncate font-mono opacity-70" title={item.content_url || 'Texto'}>
+                                {item.content_type === 'text' ? '(Contenido de texto)' : item.content_url}
+                            </p>
+                        </div>
+
+                        {/* Actions - Fixed width ensures button is always visible */}
+                        <div className="shrink-0 flex items-center border-l border-border pl-3 ml-2">
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                onClick={() => handleDeleteContent(item)}
+                                disabled={loading}
+                                title="Eliminar contenido"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                    ))}
+                </div>
+                )}
+             </ScrollArea>
           </div>
         </div>
       </DialogContent>
