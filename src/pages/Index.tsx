@@ -112,7 +112,7 @@ const Index = () => {
           <div className="flex flex-col items-center gap-4">
             <a href="#products" className="w-full sm:w-auto px-4 sm:px-0">
               <ButtonColorful 
-                className="w-full h-auto px-8 py-6 text-lg hover:scale-105 transition-transform border-2 border-neon/50"
+                className="w-full h-auto px-8 py-6 text-lg font-bold tracking-wider uppercase hover:scale-105 transition-transform border-2 border-neon/50 rounded-xl animate-pulse-glow"
               >
                 <span className="flex items-center justify-center">
                   EMPEZAR A FACTURAR CON IA
