@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw, Upload, Image as ImageIcon, Sparkles, Terminal, FolderKanban } from "lucide-react";
+import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw, Upload, Image as ImageIcon, Sparkles, Terminal, FolderKanban, User } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -36,14 +36,16 @@ interface Product {
   image_type: string;
 }
 
-interface Order {
+interface AdminOrder {
   id: string;
   created_at: string;
   status: string;
   amount: number;
   product_id: string;
-  user_id?: string;
   mp_preference_id?: string;
+  user_email?: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 interface PromptItem {
@@ -63,7 +65,7 @@ const Admin = () => {
   
   // Data State
   const [products, setProducts] = useState<Product[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [promptItems, setPromptItems] = useState<PromptItem[]>([]);
   
   // Settings State
@@ -135,13 +137,16 @@ const Admin = () => {
     if (prodError) toast({ title: "Error loading products", description: prodError.message, variant: "destructive" });
     else setProducts(productsData || []);
 
-    // Fetch Orders
+    // Fetch Orders using Secure RPC
     const { data: ordersData, error: ordersError } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .rpc('get_admin_orders');
         
-    if (!ordersError) setOrders(ordersData || []);
+    if (ordersError) {
+        console.error("Error fetching orders:", ordersError);
+        toast({ title: "Error loading orders", description: ordersError.message, variant: "destructive" });
+    } else {
+        setOrders(ordersData || []);
+    }
 
     // Fetch Prompt Items
     const { data: promptsData, error: promptsError } = await supabase
@@ -670,10 +675,10 @@ const Admin = () => {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Date</TableHead>
+                                    <TableHead>Customer</TableHead>
                                     <TableHead>Product</TableHead>
                                     <TableHead>Amount</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>MP ID</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -686,20 +691,33 @@ const Admin = () => {
                                 ) : (
                                     orders.map((order) => (
                                         <TableRow key={order.id}>
-                                            <TableCell className="font-mono text-xs">
-                                                {new Date(order.created_at).toLocaleDateString()}
+                                            <TableCell className="font-mono text-xs text-muted-foreground">
+                                                {new Date(order.created_at).toLocaleDateString()} <br/>
+                                                {new Date(order.created_at).toLocaleTimeString()}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="bg-muted p-1 rounded-full">
+                                                        <User className="w-3 h-3 text-muted-foreground" />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium">{order.user_email || "Anon/No Email"}</span>
+                                                        {(order.first_name || order.last_name) && (
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {order.first_name} {order.last_name}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </TableCell>
                                             <TableCell className="font-medium">
                                                 {getProductTitle(order.product_id)}
                                             </TableCell>
-                                            <TableCell>${order.amount}</TableCell>
+                                            <TableCell className="text-neon font-mono">${order.amount}</TableCell>
                                             <TableCell>
                                                 <Badge variant={order.status === 'approved' ? 'default' : 'secondary'} className={order.status === 'approved' ? 'bg-green-500 hover:bg-green-600' : ''}>
                                                     {order.status}
                                                 </Badge>
-                                            </TableCell>
-                                            <TableCell className="font-mono text-xs text-muted-foreground">
-                                                {order.mp_preference_id || '-'}
                                             </TableCell>
                                         </TableRow>
                                     ))
