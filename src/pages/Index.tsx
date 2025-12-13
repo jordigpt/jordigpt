@@ -12,9 +12,11 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { PillButton } from "@/components/PillButton";
+import { CartSheet } from "@/components/CartSheet";
 
 interface Product {
   id: string;
+  slug: string;
   title: string;
   short_description: string;
   full_description: string;
@@ -57,6 +59,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-neon selection:text-black font-sans">
       <Navbar />
+      <CartSheet />
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
@@ -180,7 +183,7 @@ const Index = () => {
                 {products.map((product) => (
                 <Link 
                     key={product.id} 
-                    to={`/product/${product.id}`}
+                    to={`/${product.slug || product.id}`}
                     className="group relative bg-card border border-border flex flex-col h-full rounded-xl shadow-sm hover:shadow-2xl hover:shadow-neon/10 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
                 >
                     {/* Featured/Badge Overlay */}

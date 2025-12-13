@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw, Upload, Image as ImageIcon, Sparkles, Terminal, FolderKanban, User } from "lucide-react";
+import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw, Upload, Image as ImageIcon, Sparkles, Terminal, FolderKanban, User, Link as LinkIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ import { ProductContentManager } from "@/components/ProductContentManager";
 // Interfaces
 interface Product {
   id: string;
+  slug: string;
   title: string;
   short_description: string;
   full_description: string;
@@ -76,6 +77,7 @@ const Admin = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Product>>({
     title: "",
+    slug: "",
     short_description: "",
     full_description: "",
     price: 0,
@@ -227,8 +229,16 @@ const Admin = () => {
     e.preventDefault();
     try {
       const featuresArray = featuresInput.split('\n').filter(f => f.trim() !== '');
+      
+      // Auto-generate slug if empty
+      let slug = formData.slug;
+      if (!slug && formData.title) {
+          slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      }
+
       const productData = {
         ...formData,
+        slug,
         features: featuresArray.length > 0 ? featuresArray : formData.features,
       };
 
@@ -252,6 +262,7 @@ const Admin = () => {
   const resetForm = () => {
     setFormData({
         title: "",
+        slug: "",
         short_description: "",
         full_description: "",
         price: 0,
@@ -409,6 +420,20 @@ const Admin = () => {
                         </div>
                         
                         <div>
+                            <Label htmlFor="slug" className="flex items-center gap-2">
+                                <LinkIcon className="w-3 h-3 text-neon" /> URL Slug (jordigpt.com/...)
+                            </Label>
+                            <Input 
+                                id="slug" 
+                                name="slug" 
+                                value={formData.slug} 
+                                onChange={handleInputChange} 
+                                placeholder="ej: plan-1k (se autogenera si está vacío)"
+                                className="bg-background/50 font-mono text-sm text-neon" 
+                            />
+                        </div>
+
+                        <div>
                             <Label htmlFor="short_description">Short Desc.</Label>
                             <Textarea id="short_description" name="short_description" value={formData.short_description} onChange={handleInputChange} className="h-20 bg-background/50" />
                         </div>
@@ -564,8 +589,10 @@ const Admin = () => {
                                     {product.is_featured && <Badge className="bg-neon text-black text-[10px]">FEATURED</Badge>}
                                     {product.is_free && <Badge variant="outline" className="text-[10px]">FREE</Badge>}
                                 </div>
-                                <p className="text-sm text-muted-foreground line-clamp-1">{product.short_description}</p>
-                                <p className="text-xs font-mono mt-1 text-neon">{product.price_display}</p>
+                                <div className="flex items-center gap-2 text-xs font-mono text-neon mt-1">
+                                    <span>/{product.slug}</span>
+                                </div>
+                                <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{product.short_description}</p>
                             </div>
                             <div className="flex gap-2 w-full md:w-auto mt-4 md:mt-0">
                                 <Button variant="secondary" size="sm" onClick={() => openContentManager(product)} className="gap-2">
@@ -586,6 +613,7 @@ const Admin = () => {
 
              {/* --- PROMPT GALLERY TAB --- */}
              <TabsContent value="prompts">
+                {/* ... (Prompt Gallery content remains mostly the same, elided for brevity if unchanged) ... */}
                 <div className="grid lg:grid-cols-3 gap-8">
                      <div className="lg:col-span-1">
                         <Card className="sticky top-24 border-border">

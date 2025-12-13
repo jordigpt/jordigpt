@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Terminal, Menu, X, Sparkles, User, ShieldCheck, Zap } from "lucide-react";
+import { Terminal, Menu, X, Sparkles, User, ShieldCheck, Zap, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import {
@@ -11,12 +11,14 @@ import {
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
+import { useCart } from "@/context/CartContext";
 
 const ADMIN_EMAIL = "jordithecreative@gmail.com";
 
 const Navbar = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { items, setIsOpen } = useCart();
 
   useEffect(() => {
     const getSession = async () => {
@@ -34,7 +36,6 @@ const Navbar = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Removed Resources from here to treat it as a primary link
   const navLinks = [
     { name: "FAQ", href: "/#faq" },
   ];
@@ -101,12 +102,40 @@ const Navbar = () => {
               {link.name}
             </a>
           ))}
+          
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative hover:text-neon"
+            onClick={() => setIsOpen(true)}
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {items.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-neon text-black text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+                    {items.length}
+                </span>
+            )}
+          </Button>
+
           <ModeToggle />
           {renderUserActions()}
         </div>
 
         {/* Mobile Menu */}
         <div className="md:hidden flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative hover:text-neon"
+            onClick={() => setIsOpen(true)}
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {items.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-neon text-black text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+                    {items.length}
+                </span>
+            )}
+          </Button>
           <ModeToggle />
           <Sheet>
             <SheetTrigger asChild>
@@ -115,6 +144,7 @@ const Navbar = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="bg-background border-l border-border w-[300px] p-0">
+              {/* ... (Menu Mobile) ... */}
               <div className="flex flex-col h-full p-6">
                 <div className="flex items-center gap-2 mb-12">
                    <div className="bg-neon/10 p-2 rounded border border-neon/20">
@@ -141,7 +171,6 @@ const Navbar = () => {
                     </SheetClose>
                   )}
                   
-                  {/* Recursos IA Mobile */}
                   <SheetClose asChild>
                     <a href="/#products" className="text-lg font-bold text-foreground hover:text-neon transition-colors flex items-center gap-2">
                        <Zap className="w-5 h-5 text-neon" /> RECURSOS IA

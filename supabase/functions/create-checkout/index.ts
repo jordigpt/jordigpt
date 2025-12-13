@@ -14,8 +14,19 @@ serve(async (req) => {
   }
 
   try {
-    const { productId } = await req.json()
+    // Aceptamos productId (legacy/single buy) o cartItems (array de IDs)
+    const { productId, cartItems } = await req.json()
     
+    // Normalizar a un array de IDs
+    let productIds: string[] = [];
+    if (cartItems && Array.isArray(cartItems)) {
+        productIds = cartItems;
+    } else if (productId) {
+        productIds = [productId];
+    } else {
+        throw new Error("No products provided");
+    }
+
     // 1. Inicializar Supabase Client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -27,19 +38,14 @@ serve(async (req) => {
       }
     )
 
-    // 2. Obtener el producto de la base de datos para asegurar el precio
-    const { data: product, error: productError } = await supabaseClient
+    // 2. Obtener productos de la base de datos (seguridad de precio)
+    const { data: products, error: productError } = await supabaseClient
       .from('products')
       .select('*')
-      .eq('id', productId)
-      .single()
+      .in('id', productIds)
 
-    if (productError || !product) {
-      throw new Error('Producto no encontrado')
-    }
-
-    if (product.price <= 0) {
-        throw new Error('Este producto es gratuito, no requiere pago.')
+    if (productError || !products || products.length === 0) {
+      throw new Error('Productos no encontrados')
     }
 
     // 3. Obtener el usuario (opcional, si está logueado)
@@ -53,19 +59,26 @@ serve(async (req) => {
       throw new Error('Falta configuración de Mercado Pago (MP_ACCESS_TOKEN)')
     }
 
-    // 5. Crear la preferencia en Mercado Pago
+    // 5. Crear items para la preferencia de MP
+    const mpItems = products.map(p => ({
+        id: p.id,
+        title: p.title,
+        description: p.short_description ? p.short_description.substring(0, 250) : p.title,
+        unit_price: Number(p.price),
+        quantity: 1,
+        currency_id: "USD",
+        picture_url: p.image_url
+    }));
+
+    // Filtrar items gratuitos si se colaron (aunque el front debería manejarlos)
+    const paidItems = mpItems.filter(i => i.unit_price > 0);
+
+    if (paidItems.length === 0) {
+         throw new Error('El carrito solo contiene productos gratuitos o inválidos.');
+    }
+
     const preferenceData = {
-      items: [
-        {
-          id: product.id,
-          title: product.title,
-          description: product.short_description ? product.short_description.substring(0, 250) : product.title,
-          unit_price: Number(product.price),
-          quantity: 1,
-          currency_id: "USD",
-          picture_url: product.image_url
-        }
-      ],
+      items: paidItems,
       back_urls: {
         success: `${req.headers.get('origin')}/payment/success`,
         failure: `${req.headers.get('origin')}/payment/failure`,
@@ -92,19 +105,21 @@ serve(async (req) => {
         throw new Error('Error creando preferencia en Mercado Pago: ' + (mpData.message || JSON.stringify(mpData)))
     }
 
-    // 6. Guardar la orden en nuestra base de datos
+    // 6. Guardar las órdenes en nuestra base de datos (una por producto)
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    await supabaseAdmin.from('orders').insert({
-      user_id: user ? user.id : null,
-      product_id: product.id,
-      amount: product.price,
-      mp_preference_id: mpData.id,
-      status: 'pending'
-    })
+    const ordersToInsert = products.map(p => ({
+        user_id: user ? user.id : null,
+        product_id: p.id,
+        amount: p.price,
+        mp_preference_id: mpData.id,
+        status: 'pending'
+    }));
+
+    await supabaseAdmin.from('orders').insert(ordersToInsert)
 
     // 7. Retornar la URL de pago
     return new Response(
