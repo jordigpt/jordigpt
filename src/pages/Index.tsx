@@ -96,7 +96,7 @@ const Index = () => {
               </PillButton>
             </a>
             <div className="flex flex-wrap justify-center gap-3 mt-4">
-              <span className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-[10px] border border-border">+1500 implementadores</span>
+              <span className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-[10px] border border-border">Procesos paso a paso</span>
               <span className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-[10px] border border-border">Actualizado 2025</span>
             </div>
           </div>
@@ -281,7 +281,7 @@ const Index = () => {
                <ul className="space-y-4 text-muted-foreground flex-1 text-base">
                  <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Pagar Ads sin validar oferta.</span></li>
                  <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Crear contenido manualmente 24/7.</span></li>
-                 <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Suscripciones mensuales que sangran tu caja.</span></li>
+                 <li className="flex gap-3 items-start"><span className="text-red-500 mt-1 font-bold">✕</span> <span>Suscripciones mensuales que joden el cash flow.</span></li>
                </ul>
             </div>
 
