@@ -6,10 +6,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Loader2, Plus, Trash2, Upload, Video, FileText, Link as LinkIcon, AlertCircle } from "lucide-react";
+import { Loader2, Plus, Trash2, Upload, Video, FileText, Link as LinkIcon, AlertCircle, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+
+// DND Kit Imports
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface Product {
   id: string;
@@ -31,6 +50,90 @@ interface ProductContentManagerProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Sortable Item Component
+const SortableContentItem = ({ 
+  item, 
+  index, 
+  onDelete, 
+  getDisplayInfo 
+}: { 
+  item: ProductContent, 
+  index: number, 
+  onDelete: (item: ProductContent) => void,
+  getDisplayInfo: (item: ProductContent) => string
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div 
+        ref={setNodeRef} 
+        style={style} 
+        className="group flex items-center justify-between gap-3 p-3 bg-card border border-border rounded-xl shadow-sm hover:shadow-md transition-all w-full mb-3"
+    >
+        {/* Drag Handle */}
+        <div 
+            {...attributes} 
+            {...listeners} 
+            className="cursor-grab text-muted-foreground/30 hover:text-foreground active:cursor-grabbing p-1"
+        >
+            <GripVertical className="w-5 h-5" />
+        </div>
+
+        {/* Content Info */}
+        <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
+            {/* Icon Container */}
+            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0 border border-border group-hover:bg-neon/10 group-hover:text-neon transition-colors">
+                {item.content_type === 'file' && <FileText className="h-5 w-5" />}
+                {item.content_type === 'video' && <Video className="h-5 w-5" />}
+                {item.content_type === 'text' && <FileText className="h-5 w-5" />}
+            </div>
+
+            {/* Text Content */}
+            <div className="flex flex-col min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1 rounded-sm uppercase shrink-0">
+                        {index + 1}
+                    </Badge>
+                    <h4 className="font-bold text-sm truncate" title={item.title}>
+                        {item.title}
+                    </h4>
+                </div>
+                <p className="text-xs text-muted-foreground truncate font-mono opacity-70 block w-full">
+                    {getDisplayInfo(item)}
+                </p>
+            </div>
+        </div>
+
+        {/* Right side: Actions (Delete Button) */}
+        <div className="shrink-0 flex items-center pl-2 border-l border-border ml-2">
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                onClick={() => onDelete(item)}
+                title="Eliminar contenido"
+            >
+                <Trash2 className="h-4 w-4" />
+            </Button>
+        </div>
+    </div>
+  );
+};
+
 export const ProductContentManager = ({ product, open, onOpenChange }: ProductContentManagerProps) => {
   const [content, setContent] = useState<ProductContent[]>([]);
   const [loading, setLoading] = useState(false);
@@ -41,6 +144,14 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
     content_url: '',
     content_text: ''
   });
+
+  // DnD Sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     if (product) {
@@ -63,6 +174,47 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
       setContent(data || []);
     }
     setLoading(false);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = content.findIndex((item) => item.id === active.id);
+      const newIndex = content.findIndex((item) => item.id === over?.id);
+
+      const newContentOrder = arrayMove(content, oldIndex, newIndex);
+      
+      // Update local state immediately for UI responsiveness
+      setContent(newContentOrder);
+
+      // Prepare updates for Supabase
+      const updates = newContentOrder.map((item, index) => ({
+        id: item.id,
+        sort_order: index,
+        product_id: product?.id, // Required for upsert context usually, though RLS handles safety
+        content_type: item.content_type,
+        title: item.title,
+        // Include other required fields to satisfy upsert if partial update isn't enough depending on table constraints
+        // Assuming simple update works with ID
+      }));
+
+      // Optimizamos enviando un upsert masivo
+      // Nota: Supabase upsert requiere que pasemos todos los campos NOT NULL si estamos insertando,
+      // pero para update solo necesitamos ID y los campos que cambian.
+      const { error } = await supabase
+        .from('product_content')
+        .upsert(updates.map(u => ({ id: u.id, sort_order: u.sort_order })));
+
+      if (error) {
+          console.error("Error updating sort order", error);
+          toast.error("Error al guardar el orden");
+          // Revert on error
+          fetchContent();
+      } else {
+          toast.success("Orden actualizado");
+      }
+    }
   };
 
   const handleAddContent = async () => {
@@ -101,13 +253,10 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
     setLoading(true);
     
     try {
-      // If it's a file, try to delete from storage
       if (contentItem.content_type === 'file' && contentItem.content_url) {
         try {
             const url = new URL(contentItem.content_url);
             const pathParts = url.pathname.split('/');
-            // Supabase storage URLs usually look like /storage/v1/object/public/{bucket_name}/{path}
-            // We search for the bucket name to know where the path starts
             const bucketIndex = pathParts.indexOf('product-images');
             if (bucketIndex !== -1) {
                 const filePath = pathParts.slice(bucketIndex + 1).join('/');
@@ -140,7 +289,6 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
     setIsUploading(true);
     const file = e.target.files[0];
     
-    // Sanitize filename
     const sanitizedFileName = file.name
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -175,10 +323,8 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
 
       try {
           if (item.content_type === 'file') {
-              // Extract filename from URL
               const parts = item.content_url.split('/');
               const fileNameWithTimestamp = parts[parts.length - 1];
-              // Remove the timestamp prefix we added (e.g. 17000000-file.pdf)
               const cleanName = fileNameWithTimestamp.replace(/^\d+-/, '');
               return decodeURIComponent(cleanName);
           }
@@ -196,7 +342,7 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
              Gestor de Contenido: <span className="text-neon">{product?.title}</span>
           </DialogTitle>
           <DialogDescription>
-            Agrega archivos descargables, videos o texto para los compradores.
+            Agrega archivos descargables, videos o texto. Arrastra para reordenar.
           </DialogDescription>
         </DialogHeader>
 
@@ -218,7 +364,7 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
                     </SelectTrigger>
                     <SelectContent>
                     <SelectItem value="file">Archivo Descargable</SelectItem>
-                    <SelectItem value="video">Video Embed (YouTube/Vimeo)</SelectItem>
+                    <SelectItem value="video">Video (YouTube/Vimeo)</SelectItem>
                     <SelectItem value="text">Texto / HTML / Links</SelectItem>
                     </SelectContent>
                 </Select>
@@ -257,13 +403,16 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
 
                 {newContent.content_type === 'video' && (
                 <div>
-                    <Label>URL del Video (Embed)</Label>
+                    <Label>URL del Video</Label>
                     <Input 
-                    placeholder="https://www.youtube.com/embed/..." 
+                    placeholder="https://youtube.com/..." 
                     value={newContent.content_url} 
                     onChange={e => setNewContent(p => ({ ...p, content_url: e.target.value }))}
                     className="bg-background/50"
                     />
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                        Pega el link normal (ej: youtube.com/watch?v=...), el sistema lo convierte automáticamente.
+                    </p>
                 </div>
                 )}
 
@@ -293,7 +442,7 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
           <div className="flex-1 bg-muted/5 flex flex-col overflow-hidden w-full md:w-2/3">
              <div className="p-6 border-b border-border shrink-0">
                 <h3 className="font-bold flex items-center justify-between">
-                    <span>Contenido Existente</span>
+                    <span>Organizar Contenido</span>
                     <Badge variant="outline">{content.length} items</Badge>
                 </h3>
              </div>
@@ -305,53 +454,28 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
                     <p>Este producto aún no tiene contenido.</p>
                 </div>
                 ) : (
-                <div className="space-y-3 pb-12">
-                    {content.map((item, index) => (
-                    <div 
-                        key={item.id} 
-                        className="group flex items-center justify-between gap-3 p-3 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-neon/30 transition-all w-full"
+                <DndContext 
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                >
+                    <SortableContext 
+                        items={content.map(c => c.id)}
+                        strategy={verticalListSortingStrategy}
                     >
-                        {/* Left side: Icon + Text Content */}
-                        <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
-                            {/* Icon Container */}
-                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0 border border-border group-hover:bg-neon/10 group-hover:text-neon transition-colors">
-                                {item.content_type === 'file' && <FileText className="h-5 w-5" />}
-                                {item.content_type === 'video' && <Video className="h-5 w-5" />}
-                                {item.content_type === 'text' && <FileText className="h-5 w-5" />}
-                            </div>
-
-                            {/* Text Content */}
-                            <div className="flex flex-col min-w-0 flex-1">
-                                <div className="flex items-center gap-2">
-                                    <Badge variant="secondary" className="text-[10px] h-4 px-1 rounded-sm uppercase shrink-0">
-                                        {index + 1}
-                                    </Badge>
-                                    <h4 className="font-bold text-sm truncate" title={item.title}>
-                                        {item.title}
-                                    </h4>
-                                </div>
-                                <p className="text-xs text-muted-foreground truncate font-mono opacity-70 block w-full" title={item.content_url || ''}>
-                                    {getDisplayInfo(item)}
-                                </p>
-                            </div>
+                        <div className="pb-12">
+                            {content.map((item, index) => (
+                                <SortableContentItem 
+                                    key={item.id} 
+                                    item={item} 
+                                    index={index}
+                                    onDelete={handleDeleteContent}
+                                    getDisplayInfo={getDisplayInfo}
+                                />
+                            ))}
                         </div>
-
-                        {/* Right side: Actions (Delete Button) - Fixed width ensures it's never hidden */}
-                        <div className="shrink-0 flex items-center pl-2 border-l border-border ml-2">
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                                onClick={() => handleDeleteContent(item)}
-                                disabled={loading}
-                                title="Eliminar contenido"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                    ))}
-                </div>
+                    </SortableContext>
+                </DndContext>
                 )}
              </ScrollArea>
           </div>

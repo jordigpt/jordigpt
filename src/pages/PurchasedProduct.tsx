@@ -3,8 +3,7 @@ import { useParams, Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Loader2, Lock, Download, Video, FileText, ArrowLeft } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, Download, Video, FileText, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Product {
@@ -89,6 +88,36 @@ const PurchasedProduct = () => {
     checkAccessAndFetchContent();
   }, [productId]);
 
+  // Helper para convertir URLs de YouTube normales a Embed
+  const getEmbedUrl = (url: string) => {
+    if (!url) return '';
+    try {
+        // Si ya es embed, devolver
+        if (url.includes('/embed/')) return url;
+
+        let videoId = '';
+        
+        // Formato: youtube.com/watch?v=ID
+        if (url.includes('v=')) {
+            const urlParams = new URLSearchParams(new URL(url).search);
+            videoId = urlParams.get('v') || '';
+        } 
+        // Formato: youtu.be/ID
+        else if (url.includes('youtu.be/')) {
+            const parts = url.split('/');
+            videoId = parts[parts.length - 1]?.split('?')[0] || '';
+        }
+
+        if (videoId) {
+            return `https://www.youtube.com/embed/${videoId}`;
+        }
+        
+        return url;
+    } catch (e) {
+        return url;
+    }
+  };
+
   if (loading) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-neon" /></div>;
   }
@@ -101,26 +130,30 @@ const PurchasedProduct = () => {
     switch (item.content_type) {
       case 'video':
         return (
-          <div className="aspect-video">
+          <div className="aspect-video w-full max-w-4xl mx-auto bg-black rounded-lg overflow-hidden border border-border shadow-lg">
             <iframe
-              src={item.content_url}
-              className="w-full h-full rounded-lg border"
+              src={getEmbedUrl(item.content_url || '')}
+              className="w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
+              title={item.title}
             ></iframe>
           </div>
         );
       case 'file':
         return (
           <a href={item.content_url} download target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" className="w-full justify-start h-14 text-base">
-              <Download className="mr-4 h-5 w-5 text-neon" /> {item.title}
+            <Button variant="outline" className="w-full justify-start h-16 text-base bg-card hover:bg-neon/10 border-border hover:border-neon/50 group transition-all">
+              <div className="bg-muted group-hover:bg-neon p-2 rounded mr-4 transition-colors">
+                  <Download className="h-5 w-5 text-foreground group-hover:text-black" />
+              </div>
+              <span className="font-medium">{item.title}</span>
             </Button>
           </a>
         );
       case 'text':
         return (
-            <div className="prose prose-invert max-w-none rounded-lg border bg-muted/20 p-6" dangerouslySetInnerHTML={{ __html: item.content_text || '' }} />
+            <div className="prose prose-invert max-w-none rounded-lg border border-border bg-card/50 p-8 shadow-sm" dangerouslySetInnerHTML={{ __html: item.content_text || '' }} />
         );
       default:
         return null;
@@ -135,25 +168,31 @@ const PurchasedProduct = () => {
           <ArrowLeft className="w-4 h-4 mr-2" /> VOLVER A MIS PRODUCTOS
         </Link>
         
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">{product?.title}</h1>
-        <p className="text-lg text-muted-foreground mb-12">Accede a todo el contenido de tu producto a continuación.</p>
+        <div className="mb-10 border-b border-border pb-6">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4 uppercase">{product?.title}</h1>
+            <p className="text-lg text-muted-foreground">Accede a todo el contenido de tu producto a continuación.</p>
+        </div>
 
         {content.length > 0 ? (
-          <div className="space-y-8">
-            {content.map(item => (
-              <div key={item.id}>
-                <h2 className="text-xl font-bold mb-4 flex items-center">
-                    {item.content_type === 'video' && <Video className="mr-3 h-5 w-5 text-muted-foreground"/>}
-                    {item.content_type === 'file' && <Download className="mr-3 h-5 w-5 text-muted-foreground"/>}
-                    {item.content_type === 'text' && <FileText className="mr-3 h-5 w-5 text-muted-foreground"/>}
-                    {item.title}
-                </h2>
+          <div className="space-y-12">
+            {content.map((item, index) => (
+              <div key={item.id} className="animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+                <div className="flex items-center gap-3 mb-4">
+                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-xs font-bold text-muted-foreground border border-border">
+                        {index + 1}
+                    </span>
+                    <h2 className="text-xl font-bold flex items-center">
+                        {item.title}
+                    </h2>
+                </div>
                 {renderContentItem(item)}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-center py-12 border border-dashed rounded-lg">Aún no hay contenido disponible para este producto.</p>
+          <p className="text-center py-12 border border-dashed rounded-lg bg-muted/5">
+              Aún no hay contenido disponible para este producto.
+          </p>
         )}
       </main>
       <Footer />
