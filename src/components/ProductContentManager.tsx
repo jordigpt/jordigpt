@@ -188,31 +188,28 @@ export const ProductContentManager = ({ product, open, onOpenChange }: ProductCo
       // Update local state immediately for UI responsiveness
       setContent(newContentOrder);
 
-      // Prepare updates for Supabase
+      // Prepare updates for Supabase including ALL required fields
+      // This is crucial because UPSERT needs all NOT NULL columns if it considers it an insert
       const updates = newContentOrder.map((item, index) => ({
         id: item.id,
+        product_id: product?.id,
         sort_order: index,
-        product_id: product?.id, // Required for upsert context usually, though RLS handles safety
         content_type: item.content_type,
         title: item.title,
-        // Include other required fields to satisfy upsert if partial update isn't enough depending on table constraints
-        // Assuming simple update works with ID
+        content_url: item.content_url,
+        content_text: item.content_text
       }));
 
-      // Optimizamos enviando un upsert masivo
-      // Nota: Supabase upsert requiere que pasemos todos los campos NOT NULL si estamos insertando,
-      // pero para update solo necesitamos ID y los campos que cambian.
       const { error } = await supabase
         .from('product_content')
-        .upsert(updates.map(u => ({ id: u.id, sort_order: u.sort_order })));
+        .upsert(updates);
 
       if (error) {
           console.error("Error updating sort order", error);
-          toast.error("Error al guardar el orden");
-          // Revert on error
-          fetchContent();
+          toast.error("Error al guardar el orden: " + error.message);
+          fetchContent(); // Revert on error
       } else {
-          toast.success("Orden actualizado");
+          // Success silently
       }
     }
   };
