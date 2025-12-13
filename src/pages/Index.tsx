@@ -332,7 +332,7 @@ const Index = () => {
                     ¿Es diferente a lo que hay gratis en YouTube?
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                    YouTube te da piezas sueltas; yo te doy el rompecabezas armado. No pierdas meses filtrando ruido. Aquí tienes la estrategia exacta, los prompts probados y la estructura validada. El tiempo que te ahorras en prueba y error paga la inversión el primer día.
+                    YouTube te da piezas sueltas; yo te doy el rompecabezas armado. Además, muchos de mis métodos y estrategias no están en YouTube; literalmente nadie los enseña públicamente. No pierdas meses filtrando ruido. Aquí tienes la estrategia exacta, los prompts probados y la estructura validada. El tiempo que te ahorras en prueba y error paga la inversión el primer día.
                 </AccordionContent>
                 </AccordionItem>
 
