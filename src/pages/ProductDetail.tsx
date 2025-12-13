@@ -142,6 +142,13 @@ const ProductDetail = () => {
 
   const handleAddToCart = () => {
       if (!product) return;
+      
+      // Auth Guard
+      if (!session) {
+          setAuthModalOpen(true);
+          return;
+      }
+
       addItem({
           id: product.id,
           title: product.title,
@@ -200,12 +207,14 @@ const ProductDetail = () => {
         return;
     }
 
-    // Free product logic (direct access if logged in)
+    // Auth Guard Global
+    if (!session) {
+        setAuthModalOpen(true);
+        return;
+    }
+
+    // Free product logic (direct access)
     if (product.is_free) {
-        if (!session) {
-            setAuthModalOpen(true);
-            return;
-        }
         await handleGetFreeProduct();
         return;
     }
@@ -244,7 +253,6 @@ const ProductDetail = () => {
                 </div>
               )}
             </div>
-            {/* ... badges ... */}
           </div>
 
           {/* Right Column: Copy & Pricing */}
@@ -338,7 +346,6 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
-        {/* Sections... */}
       </main>
       
       {/* Sticky Mobile Button */}
