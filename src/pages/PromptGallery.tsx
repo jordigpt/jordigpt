@@ -118,16 +118,15 @@ const PromptGallery = () => {
                 </DialogTrigger>
                 
                 {/* Modal Content */}
-                <DialogContent className="max-w-5xl w-[95vw] h-[85vh] md:h-auto p-0 border-none bg-background/95 backdrop-blur-xl overflow-hidden rounded-2xl shadow-2xl flex flex-col md:flex-row gap-0">
-                    <button 
-                        className="absolute right-4 top-4 z-50 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 md:hidden"
-                        onClick={(e) => {
-                            // close dialog logic is handled by DialogClose inside usually, 
-                            // but here we are inside content. We need to rely on Radix default close or this button.
-                        }}
-                    >
-                       <DialogClose><X className="w-5 h-5" /></DialogClose>
-                    </button>
+                {/* [&>button:not(.custom-close)]:hidden oculta el botón por defecto de shadcn */}
+                <DialogContent className="[&>button:not(.custom-close)]:hidden max-w-5xl w-[95vw] h-[85vh] md:h-auto p-0 border-none bg-background/95 backdrop-blur-xl overflow-hidden rounded-2xl shadow-2xl flex flex-col md:flex-row gap-0">
+                    <DialogClose asChild>
+                        <button 
+                            className="custom-close absolute right-4 top-4 z-50 rounded-full bg-black/50 p-2 text-white hover:bg-black/70 md:hidden"
+                        >
+                           <X className="w-5 h-5" />
+                        </button>
+                    </DialogClose>
 
                     {/* Left: Image (Full height) */}
                     <div className="relative w-full md:w-[60%] h-[40vh] md:h-[80vh] bg-black flex items-center justify-center overflow-hidden">
