@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw, Upload, Image as ImageIcon, Sparkles, Terminal, FolderKanban, User, Link as LinkIcon } from "lucide-react";
+import { Trash2, Plus, LogOut, Loader2, DollarSign, ShoppingBag, Package, Settings, Save, RefreshCw, Upload, Image as ImageIcon, Sparkles, Terminal, FolderKanban, User, Link as LinkIcon, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ interface Product {
   cta_text: string;
   is_free: boolean;
   image_url: string;
+  gallery_images: string[]; // Nuevo campo
   badge: string;
   original_price_label: string;
   original_price_display: string;
@@ -90,7 +91,8 @@ const Admin = () => {
     price_display: "",
     price_microcopy: "Pago único · Acceso de por vida",
     is_featured: false,
-    image_type: "chart-line-up"
+    image_type: "chart-line-up",
+    gallery_images: []
   });
   const [featuresInput, setFeaturesInput] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -199,10 +201,10 @@ const Admin = () => {
     setFormData(prev => ({ ...prev, [name]: checked }));
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isGallery = false) => {
     try {
       setUploading(true);
-      if (!e.target.files || e.target.files.length === 0) throw new Error('You must select an image to upload.');
+      if (!e.target.files || e.target.files.length === 0) throw new Error('Selecciona una imagen.');
 
       const file = e.target.files[0];
       const fileExt = file.name.split('.').pop();
@@ -216,8 +218,17 @@ const Admin = () => {
 
       const { data } = supabase.storage.from('product-images').getPublicUrl(fileName);
       
-      setFormData(prev => ({ ...prev, image_url: data.publicUrl }));
-      toast({ title: "Imagen subida exitosamente" });
+      if (isGallery) {
+          setFormData(prev => ({
+              ...prev,
+              gallery_images: [...(prev.gallery_images || []), data.publicUrl]
+          }));
+          toast({ title: "Imagen añadida a la galería" });
+      } else {
+          setFormData(prev => ({ ...prev, image_url: data.publicUrl }));
+          toast({ title: "Imagen principal actualizada" });
+      }
+
     } catch (error: any) {
       toast({ title: "Error al subir imagen", description: error.message, variant: "destructive" });
     } finally {
@@ -225,12 +236,18 @@ const Admin = () => {
     }
   };
 
+  const removeGalleryImage = (indexToRemove: number) => {
+      setFormData(prev => ({
+          ...prev,
+          gallery_images: prev.gallery_images?.filter((_, index) => index !== indexToRemove) || []
+      }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const featuresArray = featuresInput.split('\n').filter(f => f.trim() !== '');
       
-      // Auto-generate slug if empty
       let slug = formData.slug;
       if (!slug && formData.title) {
           slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
@@ -275,7 +292,8 @@ const Admin = () => {
         price_display: "",
         price_microcopy: "Pago único · Acceso de por vida",
         is_featured: false,
-        image_type: "chart-line-up"
+        image_type: "chart-line-up",
+        gallery_images: []
     });
     setFeaturesInput("");
     setEditingId(null);
@@ -379,6 +397,7 @@ const Admin = () => {
       <ProductContentManager product={selectedProduct} open={contentManagerOpen} onOpenChange={setContentManagerOpen} />
       
       <div className="container mx-auto px-4 pt-32">
+        {/* ... Header y Tabs igual ... */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <Button variant="destructive" onClick={handleLogout} className="gap-2">
@@ -428,7 +447,7 @@ const Admin = () => {
                                 name="slug" 
                                 value={formData.slug} 
                                 onChange={handleInputChange} 
-                                placeholder="ej: plan-1k (se autogenera si está vacío)"
+                                placeholder="ej: plan-1k"
                                 className="bg-background/50 font-mono text-sm text-neon" 
                             />
                         </div>
@@ -483,69 +502,64 @@ const Admin = () => {
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label htmlFor="cta_text">CTA Button</Label>
-                                <Input id="cta_text" name="cta_text" value={formData.cta_text} onChange={handleInputChange} className="bg-background/50" />
+                        {/* IMAGES SECTION */}
+                        <div className="border-t border-border pt-4 mt-4">
+                            <Label className="mb-2 block font-bold text-neon">Gestión de Imágenes</Label>
+                            
+                            {/* Main Image */}
+                            <div className="mb-4">
+                                <Label className="text-xs mb-1 block text-muted-foreground">Imagen Principal</Label>
+                                <div className="flex gap-2">
+                                    <Input 
+                                        type="file" 
+                                        accept="image/*" 
+                                        onChange={(e) => handleImageUpload(e, false)} 
+                                        disabled={uploading} 
+                                        className="text-xs" 
+                                    />
+                                </div>
+                                {formData.image_url && (
+                                    <div className="relative mt-2 w-20 h-20 rounded overflow-hidden border border-border">
+                                        <img src={formData.image_url} className="w-full h-full object-cover" />
+                                    </div>
+                                )}
                             </div>
-                             <div>
-                                <Label htmlFor="image_type">Icon Fallback</Label>
-                                <select 
-                                    id="image_type" 
-                                    name="image_type" 
-                                    value={formData.image_type} 
-                                    onChange={(e) => setFormData({...formData, image_type: e.target.value})}
-                                    className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm"
-                                >
-                                    <option value="chart-line-up">Zap (Chart)</option>
-                                    <option value="infinity">Infinity</option>
-                                    <option value="unlock">Unlock</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div>
-                            <Label htmlFor="image">Imagen del Producto</Label>
-                            <div className="flex flex-col gap-2 mt-1">
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    className="w-full border-dashed border-2 border-border h-20 relative hover:border-neon/50 transition-colors"
-                                    onClick={() => document.getElementById('image')?.click()}
-                                    disabled={uploading}
-                                >
-                                    {uploading ? (
-                                        <div className="flex items-center text-muted-foreground"><Loader2 className="animate-spin mr-2 h-4 w-4"/> Subiendo...</div>
-                                    ) : (
-                                        <div className="flex flex-col items-center text-muted-foreground">
-                                            <Upload className="h-6 w-6 mb-1"/>
-                                            <span className="text-xs">Click para subir imagen</span>
-                                        </div>
-                                    )}
-                                </Button>
+                            {/* Gallery */}
+                            <div>
+                                <Label className="text-xs mb-1 block text-muted-foreground">Galería Adicional</Label>
                                 <Input 
-                                    id="image" 
                                     type="file" 
                                     accept="image/*" 
-                                    onChange={handleImageUpload} 
+                                    onChange={(e) => handleImageUpload(e, true)} 
                                     disabled={uploading} 
-                                    className="hidden" 
+                                    className="text-xs mb-2" 
                                 />
                                 
-                                {formData.image_url && (
-                                    <div className="relative rounded-lg overflow-hidden border border-border mt-2 h-40 bg-muted/30 flex items-center justify-center group">
-                                        <img src={formData.image_url} alt="Preview" className="h-full w-full object-cover" />
-                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <Button type="button" size="sm" variant="destructive" onClick={() => setFormData({...formData, image_url: ""})}>
-                                                <Trash2 className="w-4 h-4 mr-2"/> Quitar
-                                            </Button>
-                                        </div>
+                                {formData.gallery_images && formData.gallery_images.length > 0 && (
+                                    <div className="grid grid-cols-3 gap-2 mt-2">
+                                        {formData.gallery_images.map((img, idx) => (
+                                            <div key={idx} className="relative aspect-square rounded overflow-hidden border border-border group">
+                                                <img src={img} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <Button 
+                                                        type="button" 
+                                                        size="icon" 
+                                                        variant="destructive" 
+                                                        className="h-6 w-6" 
+                                                        onClick={() => removeGalleryImage(idx)}
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>
                         </div>
                         
-                        <div className="flex gap-4 pt-2">
+                        <div className="flex gap-4 pt-4 border-t border-border mt-4">
                             <div className="flex items-center space-x-2">
                             <Checkbox id="is_free" checked={formData.is_free} onCheckedChange={(c) => handleCheckboxChange("is_free", c as boolean)} />
                             <label htmlFor="is_free" className="text-sm font-medium">Is Free?</label>
@@ -569,7 +583,7 @@ const Admin = () => {
                     </Card>
                 </div>
 
-                {/* List Section */}
+                {/* List Section - Identical to previous version */}
                 <div className="lg:col-span-2 space-y-4">
                     <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><ShoppingBag className="w-5 h-5"/> Current Inventory</h2>
                     {products.length === 0 ? (
@@ -611,9 +625,8 @@ const Admin = () => {
                 </div>
             </TabsContent>
 
-             {/* --- PROMPT GALLERY TAB --- */}
+             {/* --- OTHER TABS REMAIN UNCHANGED --- */}
              <TabsContent value="prompts">
-                {/* ... (Prompt Gallery content remains mostly the same, elided for brevity if unchanged) ... */}
                 <div className="grid lg:grid-cols-3 gap-8">
                      <div className="lg:col-span-1">
                         <Card className="sticky top-24 border-border">
@@ -690,7 +703,6 @@ const Admin = () => {
                 </div>
             </TabsContent>
 
-            {/* --- ORDERS TAB --- */}
             <TabsContent value="orders">
                 <Card className="border-border">
                     <CardHeader>
@@ -756,7 +768,6 @@ const Admin = () => {
                 </Card>
             </TabsContent>
 
-            {/* --- AI CONFIG TAB --- */}
             <TabsContent value="settings">
                  <div className="grid lg:grid-cols-2 gap-8">
                     <Card className="border-neon/30 bg-neon/5 lg:col-span-2">
@@ -766,8 +777,6 @@ const Admin = () => {
                             </CardTitle>
                             <CardDescription>
                                 Define la personalidad, restricciones y formato de salida del creador de productos.
-                                <br />
-                                <strong>ADVERTENCIA:</strong> No borres la estructura JSON del final, o la IA dejará de funcionar.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">

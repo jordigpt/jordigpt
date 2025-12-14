@@ -25,6 +25,7 @@ interface Product {
   cta_text: string;
   is_free: boolean;
   image_url?: string;
+  gallery_images?: string[]; // Actualizado
   badge?: string;
   original_price_label?: string;
   original_price_display?: string;
@@ -133,7 +134,7 @@ const Index = () => {
                  {/* Decorativo */}
                  <div className="absolute -bottom-6 -right-6 bg-background border border-border p-4 rounded-lg shadow-xl hidden md:block z-10">
                     <p className="text-neon font-bold text-xl font-mono">Excelencia</p>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Operativa</p>
+                    <p className="text--[10px] text-muted-foreground uppercase tracking-widest">Operativa</p>
                  </div>
               </div>
 
