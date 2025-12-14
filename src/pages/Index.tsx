@@ -25,7 +25,7 @@ interface Product {
   cta_text: string;
   is_free: boolean;
   image_url?: string;
-  gallery_images?: string[]; // Actualizado
+  gallery_images?: string[];
   badge?: string;
   original_price_label?: string;
   original_price_display?: string;
@@ -33,6 +33,7 @@ interface Product {
   price_microcopy: string;
   is_featured?: boolean;
   image_type?: string;
+  sort_order?: number;
 }
 
 const Index = () => {
@@ -44,12 +45,11 @@ const Index = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .order('is_featured', { ascending: false })
+        .order('sort_order', { ascending: true })
         .order('created_at', { ascending: false });
       
       if (!error && data) {
-         const sorted = [...data].sort((a, b) => (Number(b.is_featured) - Number(a.is_featured)));
-         setProducts(sorted);
+         setProducts(data);
       }
       setLoading(false);
     };

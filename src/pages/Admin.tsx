@@ -46,6 +46,7 @@ const Admin = () => {
     const { data: productsData, error: prodError } = await supabase
       .from('products')
       .select('*')
+      .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false });
     
     if (prodError) toast({ title: "Error loading products", description: prodError.message, variant: "destructive" });

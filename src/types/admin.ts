@@ -17,6 +17,7 @@ export interface Product {
   price_microcopy: string;
   is_featured: boolean;
   image_type: string;
+  sort_order: number;
 }
 
 export interface AdminOrder {

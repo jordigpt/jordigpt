@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,20 +7,117 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Loader2, Package, ShoppingBag, FolderKanban, Link as LinkIcon, X } from "lucide-react";
+import { Trash2, Loader2, Package, ShoppingBag, FolderKanban, Link as LinkIcon, X, GripVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AdminAIAssistant } from "@/components/AdminAIAssistant";
 import { ProductContentManager } from "@/components/ProductContentManager";
 import { Product } from "@/types/admin";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface AdminProductsTabProps {
   products: Product[];
   onRefresh: () => void;
 }
 
-export function AdminProductsTab({ products, onRefresh }: AdminProductsTabProps) {
+// Sortable Product Card Component
+const SortableProductCard = ({ 
+  product, 
+  onEdit, 
+  onDelete, 
+  onContent 
+}: { 
+  product: Product, 
+  onEdit: (p: Product) => void, 
+  onDelete: (id: string) => void,
+  onContent: (p: Product) => void
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: product.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Card 
+        ref={setNodeRef} 
+        style={style} 
+        className="overflow-hidden group hover:border-neon/50 transition-colors mb-4 relative"
+    >
+        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-start md:items-center">
+            {/* Drag Handle */}
+            <div 
+                {...attributes} 
+                {...listeners}
+                className="cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-foreground self-center p-2"
+            >
+                <GripVertical className="w-5 h-5" />
+            </div>
+
+            {product.image_url && (
+                <img src={product.image_url} alt={product.title} className="w-16 h-16 object-cover rounded bg-muted shrink-0" />
+            )}
+            
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-lg truncate">{product.title}</h3>
+                    {product.is_featured && <Badge className="bg-neon text-black text-[10px]">FEATURED</Badge>}
+                    {product.is_free && <Badge variant="outline" className="text-[10px]">FREE</Badge>}
+                </div>
+                <div className="flex items-center gap-2 text-xs font-mono text-neon mt-1">
+                    <span>/{product.slug}</span>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{product.short_description}</p>
+            </div>
+            
+            <div className="flex gap-2 w-full md:w-auto mt-4 md:mt-0 flex-wrap justify-end">
+                <Button variant="secondary" size="sm" onClick={() => onContent(product)} className="gap-2">
+                    <FolderKanban className="w-4 h-4" /> Contenido
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => onEdit(product)}>Edit</Button>
+                <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => onDelete(product.id)}>
+                    <Trash2 className="w-4 h-4" />
+                </Button>
+            </div>
+        </CardContent>
+    </Card>
+  );
+};
+
+export function AdminProductsTab({ products: initialProducts, onRefresh }: AdminProductsTabProps) {
   const { toast } = useToast();
   
+  const [localProducts, setLocalProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+      setLocalProducts(initialProducts);
+  }, [initialProducts]);
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Product>>({
     title: "",
@@ -47,6 +144,55 @@ export function AdminProductsTab({ products, onRefresh }: AdminProductsTabProps)
   // Content Manager State
   const [contentManagerOpen, setContentManagerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // DnD Sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+        const oldIndex = localProducts.findIndex((p) => p.id === active.id);
+        const newIndex = localProducts.findIndex((p) => p.id === over?.id);
+
+        const newOrder = arrayMove(localProducts, oldIndex, newIndex);
+        setLocalProducts(newOrder); // Optimistic UI update
+
+        // Update DB
+        const updates = newOrder.map((item, index) => ({
+            id: item.id,
+            sort_order: index,
+            // Need to include minimal required fields for update or just id and sort_order if updating specific columns?
+            // Supabase .upsert needs PK. .update needs filtering but we are batching.
+            // Best approach for batch reorder: Use UPSERT with minimal fields if table allows nulls or pass all.
+            // Actually, simply iterating and updating is safer for partial updates, although slower.
+            // Or use an RPC. For simplicity and low volume (<100 products), loop updates are acceptable or upsert with just ID/Sort if allowed.
+            // However, upsert might overwrite other fields if not provided? No, it only updates provided fields if match.
+            // Wait, upsert requires all NOT NULL fields if it decides to insert. But since IDs exist, it's an update.
+            // Let's try upserting just ID and sort_order.
+        }));
+
+        // NOTE: upsert is tricky with partial data. Let's do a loop for safety or create a dedicated RPC later if slow.
+        // For < 50 items, Promise.all with updates is fine.
+        try {
+            await Promise.all(
+                updates.map(u => supabase.from('products').update({ sort_order: u.sort_order }).eq('id', u.id))
+            );
+            toast({ title: "Orden actualizado" });
+            // No need to onRefresh immediately if local state is correct, but good to sync.
+            // onRefresh(); 
+        } catch (error) {
+            console.error("Error reordering", error);
+            toast({ title: "Error guardando orden", variant: "destructive" });
+            onRefresh(); // Revert
+        }
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -110,10 +256,17 @@ export function AdminProductsTab({ products, onRefresh }: AdminProductsTabProps)
           slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
       }
 
+      // Default sort_order to end of list for new items
+      let sort_order = 0;
+      if (!editingId && localProducts.length > 0) {
+          sort_order = Math.max(...localProducts.map(p => p.sort_order || 0)) + 1;
+      }
+
       const productData = {
         ...formData,
         slug,
         features: featuresArray.length > 0 ? featuresArray : formData.features,
+        ...( !editingId ? { sort_order } : {} )
       };
 
       if (editingId) {
@@ -361,40 +514,31 @@ export function AdminProductsTab({ products, onRefresh }: AdminProductsTabProps)
         {/* List Section */}
         <div className="lg:col-span-2 space-y-4">
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><ShoppingBag className="w-5 h-5"/> Current Inventory</h2>
-            {products.length === 0 ? (
+            {localProducts.length === 0 ? (
                 <div className="text-center p-8 bg-muted/20 rounded border border-dashed border-border">
                     <p className="text-muted-foreground">No products found. Add one!</p>
                 </div>
             ) : (
-                products.map((product) => (
-                <Card key={product.id} className="overflow-hidden group hover:border-neon/50 transition-colors">
-                    <CardContent className="p-6 flex flex-col md:flex-row gap-4 items-start md:items-center">
-                    {product.image_url && (
-                        <img src={product.image_url} alt={product.title} className="w-16 h-16 object-cover rounded bg-muted" />
-                    )}
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-lg">{product.title}</h3>
-                            {product.is_featured && <Badge className="bg-neon text-black text-[10px]">FEATURED</Badge>}
-                            {product.is_free && <Badge variant="outline" className="text-[10px]">FREE</Badge>}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs font-mono text-neon mt-1">
-                            <span>/{product.slug}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{product.short_description}</p>
-                    </div>
-                    <div className="flex gap-2 w-full md:w-auto mt-4 md:mt-0">
-                        <Button variant="secondary" size="sm" onClick={() => openContentManager(product)} className="gap-2">
-                            <FolderKanban className="w-4 h-4" /> Contenido
-                        </Button>
-                        <Button variant="secondary" size="sm" onClick={() => handleEdit(product)}>Edit</Button>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => handleDelete(product.id)}>
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    </div>
-                    </CardContent>
-                </Card>
-                ))
+                <DndContext 
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                >
+                    <SortableContext 
+                        items={localProducts.map(p => p.id)}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        {localProducts.map((product) => (
+                            <SortableProductCard 
+                                key={product.id} 
+                                product={product} 
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                                onContent={openContentManager}
+                            />
+                        ))}
+                    </SortableContext>
+                </DndContext>
             )}
         </div>
       </div>
