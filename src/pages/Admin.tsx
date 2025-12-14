@@ -28,7 +28,7 @@ interface Product {
   cta_text: string;
   is_free: boolean;
   image_url: string;
-  gallery_images: string[]; // Nuevo campo
+  gallery_images: string[]; // New field
   badge: string;
   original_price_label: string;
   original_price_display: string;
@@ -397,7 +397,6 @@ const Admin = () => {
       <ProductContentManager product={selectedProduct} open={contentManagerOpen} onOpenChange={setContentManagerOpen} />
       
       <div className="container mx-auto px-4 pt-32">
-        {/* ... Header y Tabs igual ... */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <Button variant="destructive" onClick={handleLogout} className="gap-2">
@@ -583,7 +582,7 @@ const Admin = () => {
                     </Card>
                 </div>
 
-                {/* List Section - Identical to previous version */}
+                {/* List Section */}
                 <div className="lg:col-span-2 space-y-4">
                     <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><ShoppingBag className="w-5 h-5"/> Current Inventory</h2>
                     {products.length === 0 ? (
@@ -625,8 +624,7 @@ const Admin = () => {
                 </div>
             </TabsContent>
 
-             {/* --- OTHER TABS REMAIN UNCHANGED --- */}
-             <TabsContent value="prompts">
+            <TabsContent value="prompts">
                 <div className="grid lg:grid-cols-3 gap-8">
                      <div className="lg:col-span-1">
                         <Card className="sticky top-24 border-border">
@@ -637,7 +635,6 @@ const Admin = () => {
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handlePromptSubmit} className="space-y-4">
-                                    {/* Image Upload */}
                                     <div>
                                         <Label>Imagen Generada</Label>
                                         <div className="mt-2">
