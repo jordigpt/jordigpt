@@ -455,7 +455,7 @@ const ProductDetail = () => {
                         <h3 className="flex items-center gap-2 text-xl font-bold text-neon mb-6">
                             <CheckCircle2 className="w-6 h-6" /> SÍ ES PARA VOS SI...
                         </h3>
-                        <ul className="space-y-4">
+                        <ul className="space-y-4 text-foreground">
                             <li className="flex gap-3 text-foreground">
                                 <span className="text-neon font-bold">✓</span> Quieres resultados tangibles y rápidos.
                             </li>
