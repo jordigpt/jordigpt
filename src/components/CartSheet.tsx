@@ -1,36 +1,36 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
-import { Trash2, ShoppingCart, Loader2, ArrowRight, LogIn } from "lucide-react";
+import { Trash2, ShoppingCart, Loader2, CreditCard } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AuthModal } from "@/components/AuthModal";
+import { PayPalButtons } from "@paypal/react-paypal-js";
+import { Separator } from "@/components/ui/separator";
 
 export function CartSheet() {
-  const { items, removeItem, isOpen, setIsOpen, total } = useCart();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { items, removeItem, isOpen, setIsOpen, total, clearCart } = useCart();
+  const [isProcessingMP, setIsProcessingMP] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
-  const handleCheckout = async () => {
+  // --- CHECKOUT MERCADO PAGO ---
+  const handleCheckoutMP = async () => {
     if (items.length === 0) return;
 
-    // 1. Validar Sesión
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {
-        toast.info("Debes iniciar sesión para continuar con la compra.");
+        toast.info("Inicia sesión para guardar tus productos");
         setAuthModalOpen(true);
         return;
     }
 
-    // 2. Procesar Checkout
     try {
-      setIsProcessing(true);
-      toast.info("Preparando checkout...");
+      setIsProcessingMP(true);
+      toast.info("Conectando con Mercado Pago...");
 
-      // IDs de productos a comprar
       const cartItems = items.map(i => i.id);
 
       const { data, error } = await supabase.functions.invoke('create-checkout', {
@@ -47,24 +47,65 @@ export function CartSheet() {
       }
 
     } catch (error: any) {
-      console.error("Checkout error:", error);
-      toast.error("Error al iniciar pago: " + (error.message || "Intente nuevamente"));
+      console.error("Checkout MP error:", error);
+      toast.error("Error: " + (error.message || "Intente nuevamente"));
     } finally {
-      setIsProcessing(false);
+      setIsProcessingMP(false);
     }
+  };
+
+  // --- CHECKOUT PAYPAL ---
+  const createPayPalOrder = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+          setAuthModalOpen(true);
+          throw new Error("Auth required");
+      }
+
+      const cartItems = items.map(i => i.id);
+      
+      const { data, error } = await supabase.functions.invoke('paypal-transaction', {
+          body: { action: 'create', cartItems }
+      });
+
+      if (error || data.error) {
+          toast.error("Error iniciando PayPal");
+          throw new Error(error?.message || data.error);
+      }
+      return data.id;
+  };
+
+  const onPayPalApprove = async (data: any) => {
+      toast.info("Verificando pago...");
+      const cartItems = items.map(i => i.id);
+
+      const { data: result, error } = await supabase.functions.invoke('paypal-transaction', {
+          body: { action: 'capture', orderID: data.orderID, cartItems }
+      });
+
+      if (error || result.error) {
+          toast.error("Error capturando el pago. Contáctanos.");
+          console.error(error || result.error);
+      } else {
+          toast.success("¡Pago exitoso! Bienvenido al arsenal.");
+          clearCart();
+          setIsOpen(false);
+          // Redirigir al éxito
+          window.location.href = "/payment/success";
+      }
   };
 
   return (
     <>
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent className="flex flex-col w-full sm:max-w-md bg-background border-l border-border">
+        <SheetContent className="flex flex-col w-full sm:max-w-md bg-background border-l border-border z-[100]">
           <SheetHeader className="border-b border-border pb-4">
             <SheetTitle className="flex items-center gap-2">
               <ShoppingCart className="w-5 h-5 text-neon" />
               Tu Arsenal ({items.length})
             </SheetTitle>
             <SheetDescription>
-              Revisa tus herramientas antes de confirmar el acceso.
+              Selecciona tu método de pago preferido.
             </SheetDescription>
           </SheetHeader>
 
@@ -99,27 +140,52 @@ export function CartSheet() {
             )}
           </ScrollArea>
 
-          <SheetFooter className="border-t border-border pt-4 flex-col gap-4 sm:flex-col sm:space-x-0">
-              <div className="flex justify-between items-center text-lg font-bold">
+          <SheetFooter className="border-t border-border pt-4 flex-col gap-3 sm:flex-col sm:space-x-0">
+              <div className="flex justify-between items-center text-lg font-bold mb-2">
                   <span>Total:</span>
                   <span className="text-neon font-mono">${total.toFixed(2)}</span>
               </div>
+              
+              {/* Opción 1: Mercado Pago */}
               <Button 
-                  className="w-full bg-neon text-black hover:bg-neon/90 font-bold h-12 text-base"
-                  onClick={handleCheckout}
-                  disabled={items.length === 0 || isProcessing}
+                  className="w-full bg-[#009EE3] hover:bg-[#009EE3]/90 text-white font-bold h-12 text-base shadow-sm relative overflow-hidden"
+                  onClick={handleCheckoutMP}
+                  disabled={items.length === 0 || isProcessingMP}
               >
-                  {isProcessing ? <Loader2 className="animate-spin mr-2" /> : <ShoppingCart className="mr-2 w-5 h-5" />}
-                  {isProcessing ? "PROCESANDO..." : "COMPRAR AHORA"}
+                   {isProcessingMP ? <Loader2 className="animate-spin mr-2" /> : <CreditCard className="mr-2 w-5 h-5" />}
+                   Pagar con Tarjeta / Mercado Pago
+                   <span className="absolute right-0 top-0 h-full w-12 bg-white/10 skew-x-12 -translate-x-3"></span>
               </Button>
-              <p className="text-[10px] text-center text-muted-foreground uppercase tracking-wider">
-                  Pago Único · Acceso Inmediato
+
+              <div className="flex items-center gap-2 text-xs text-muted-foreground my-1">
+                  <Separator className="flex-1" />
+                  <span>O PAGO INTERNACIONAL</span>
+                  <Separator className="flex-1" />
+              </div>
+
+              {/* Opción 2: PayPal */}
+              <div className="w-full relative z-0">
+                  {items.length > 0 && (
+                    <PayPalButtons 
+                        style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
+                        disabled={items.length === 0}
+                        createOrder={createPayPalOrder}
+                        onApprove={onPayPalApprove}
+                        onError={(err) => {
+                            console.error("PayPal Error", err);
+                            toast.error("Hubo un error cargando PayPal.");
+                        }}
+                    />
+                  )}
+              </div>
+              
+              <p className="text-[10px] text-center text-muted-foreground uppercase tracking-wider mt-2">
+                  Acceso Inmediato · SSL Seguro
               </p>
           </SheetFooter>
         </SheetContent>
       </Sheet>
 
-      {/* Auth Modal controlado localmente por el carrito */}
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </>
   );
