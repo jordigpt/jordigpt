@@ -73,7 +73,7 @@ export function CartSheet() {
           throw new Error(error?.message || data.error);
       }
       return data.id;
-  };
+    }
 
   const onPayPalApprove = async (data: any) => {
       toast.info("Verificando pago...");
@@ -181,8 +181,8 @@ export function CartSheet() {
                         </div>
 
                         {/* Opción 2: PayPal */}
-                        {/* Contenedor con z-index bajo para evitar solapamientos raros */}
-                        <div className="w-full relative z-0 min-h-[150px]">
+                        {/* FIX: Contenedor con fondo blanco para asegurar contraste del texto */}
+                        <div className="w-full relative z-0 min-h-[150px] bg-white p-4 rounded-lg shadow-sm">
                             <PayPalButtons 
                                 style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
                                 createOrder={createPayPalOrder}
