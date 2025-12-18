@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CartProvider } from "@/context/CartContext";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
+import { CartSheet } from "@/components/CartSheet";
 import Index from "./pages/Index";
 import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";
@@ -33,6 +34,8 @@ const App = () => (
             <CartProvider>
                 <Toaster />
                 <Sonner />
+                {/* CartSheet Global: Available everywhere */}
+                <CartSheet />
                 <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<Index />} />

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, Zap, CheckCircle2, Lock, XCircle, Star, Quote, Loader2, Timer, TrendingUp, User } from "lucide-react";
+import { ArrowRight, CheckCircle2, XCircle, Star, Loader2 } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { PillButton } from "@/components/PillButton";
-import { CartSheet } from "@/components/CartSheet";
 
 interface Product {
   id: string;
@@ -60,8 +59,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-neon selection:text-black font-sans">
       <Navbar />
-      <CartSheet />
-
+      
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
@@ -206,9 +204,7 @@ const Index = () => {
                           />
                       ) : (
                           <div className="absolute inset-0 flex items-center justify-center z-0 bg-muted/30">
-                              {(product.image_type === 'chart-line-up' || !product.image_type) && <Zap className="w-16 h-16 text-muted-foreground/20 group-hover:text-neon/50 transition-colors" />}
-                              {product.image_type === 'infinity' && <div className="text-6xl font-bold text-muted-foreground/20 group-hover:text-neon/50 transition-colors">∞</div>}
-                              {product.image_type === 'unlock' && <Lock className="w-16 h-16 text-muted-foreground/20 group-hover:text-neon/50 transition-colors" />}
+                              <span className="text-neon text-4xl">JG</span>
                           </div>
                       )}
                     </div>

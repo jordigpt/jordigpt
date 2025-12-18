@@ -4,13 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Star, Download, ShoppingCart, Cross, X, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Star, Download, ShoppingCart, Image as ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { AuthModal } from "@/components/AuthModal";
 import { Session } from "@supabase/supabase-js";
 import { useCart } from "@/context/CartContext";
-import { CartSheet } from "@/components/CartSheet";
 import { cn } from "@/lib/utils";
 
 interface Product {
@@ -213,7 +212,6 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans pb-20 md:pb-0 selection:bg-neon selection:text-black">
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
-      <CartSheet />
       <Navbar />
 
       <main className="pt-32 container mx-auto px-4">

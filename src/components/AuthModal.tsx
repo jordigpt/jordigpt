@@ -30,22 +30,62 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
               variables: {
                 default: {
                   colors: {
-                    brand: 'hsl(var(--primary))',
-                    brandAccent: 'hsl(var(--primary))',
-                    inputBackground: 'transparent',
-                    inputText: 'hsl(var(--foreground))',
-                    inputBorder: 'hsl(var(--border))',
+                    brand: '#d4e83a', // Neon color
+                    brandAccent: '#c3d635',
+                    brandButtonText: 'black',
+                    inputBackground: 'rgba(255,255,255,0.05)',
+                    inputText: 'white',
+                    inputBorder: 'rgba(255,255,255,0.2)',
+                    inputLabelText: 'rgba(255,255,255,0.7)',
                   },
                 },
               },
+              style: {
+                button: {
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    fontSize: '0.875rem',
+                    padding: '12px 24px',
+                    backgroundColor: '#d4e83a',
+                    color: 'black',
+                    border: 'none',
+                },
+                anchor: {
+                    color: '#d4e83a',
+                    fontSize: '0.875rem',
+                },
+                label: {
+                    color: '#9ca3af',
+                    fontSize: '0.875rem',
+                },
+                input: {
+                    color: 'white',
+                }
+              },
               className: {
-                button: 'bg-neon text-black hover:bg-neon/90 font-bold',
-                input: 'bg-background/50 border-input text-foreground',
+                button: 'w-full !bg-neon !text-black hover:!bg-neon/90 font-bold shadow-[0_0_15px_rgba(212,232,58,0.2)]',
+                input: '!bg-background/50 !border-border text-foreground focus:!border-neon',
               }
             }}
             providers={[]}
             theme="dark"
             view="sign_up"
+            localization={{
+                variables: {
+                  sign_in: {
+                    email_label: 'Correo Electrónico',
+                    password_label: 'Contraseña',
+                    button_label: 'INICIAR SESIÓN',
+                    link_text: '¿Ya tienes cuenta? Inicia sesión',
+                  },
+                  sign_up: {
+                    email_label: 'Correo Electrónico',
+                    password_label: 'Contraseña',
+                    button_label: 'CREAR CUENTA',
+                    link_text: '¿No tienes cuenta? Regístrate',
+                  }
+                }
+            }}
           />
         </div>
       </DialogContent>
