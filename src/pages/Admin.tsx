@@ -13,8 +13,6 @@ import { AdminPromptsTab } from "@/components/admin/AdminPromptsTab";
 import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
 import { AdminUsersTab } from "@/components/admin/AdminUsersTab";
 
-const ADMIN_EMAIL = "jordithecreative@gmail.com";
-
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -23,23 +21,38 @@ const Admin = () => {
 
   useEffect(() => {
     const initializeAdmin = async () => {
-      await checkUser();
-      fetchProducts();
+      const authorized = await checkUser();
+      if (authorized) {
+        fetchProducts();
+      }
     };
     initializeAdmin();
   }, []);
 
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
+    
     if (!session) {
       navigate("/login");
-      return;
+      return false;
     }
-    if (session.user.email !== ADMIN_EMAIL) {
-      toast({ title: "Acceso Denegado", description: "No tienes permisos para ver esta página.", variant: "destructive" });
+
+    // Seguridad Robusta: Verificar rol en la base de datos
+    // Ya no dependemos solo del email o una variable local.
+    const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+
+    if (error || profile?.role !== 'admin') {
+      console.warn("Intento de acceso no autorizado:", session.user.email);
+      toast({ title: "Acceso Denegado", description: "No tienes permisos de administrador.", variant: "destructive" });
       navigate("/account");
-      return;
+      return false;
     }
+
+    return true;
   };
 
   const fetchProducts = async () => {

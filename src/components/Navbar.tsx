@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Terminal, Menu, X, Sparkles, User, ShieldCheck, Zap, ShoppingCart } from "lucide-react";
+import { Terminal, Menu, Sparkles, User, ShieldCheck, Zap, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import {
@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { useCart } from "@/context/CartContext";
 
-const ADMIN_EMAIL = "jordithecreative@gmail.com";
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
 
 const Navbar = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -144,7 +144,6 @@ const Navbar = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="bg-background border-l border-border w-[300px] p-0">
-              {/* ... (Menu Mobile) ... */}
               <div className="flex flex-col h-full p-6">
                 <div className="flex items-center gap-2 mb-12">
                    <div className="bg-neon/10 p-2 rounded border border-neon/20">
