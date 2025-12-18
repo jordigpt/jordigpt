@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Star, Download, ShoppingCart, Image as ImageIcon, Ban } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Star, Download, ShoppingCart, Image as ImageIcon, Ban, Gift } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { AuthModal } from "@/components/AuthModal";
@@ -299,10 +299,12 @@ const ProductDetail = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <div className="bg-neon/10 p-2 rounded-full"><Lock className="w-5 h-5 text-neon" /></div>
+                    <div className="bg-neon/10 p-2 rounded-full">
+                        {product.is_free ? <Gift className="w-5 h-5 text-neon" /> : <Lock className="w-5 h-5 text-neon" />}
+                    </div>
                     <div className="flex flex-col">
-                        <span className="font-bold text-sm">Pago Seguro</span>
-                        <span className="text-xs text-muted-foreground">Encriptado SSL</span>
+                        <span className="font-bold text-sm">{product.is_free ? "Acceso Gratuito" : "Pago Seguro"}</span>
+                        <span className="text-xs text-muted-foreground">{product.is_free ? "Sin tarjeta requerida" : "Encriptado SSL"}</span>
                     </div>
                 </div>
             </div>
