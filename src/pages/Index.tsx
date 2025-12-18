@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, CheckCircle2, XCircle, Star, Loader2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, XCircle, Star, Loader2, Ban } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -33,6 +33,7 @@ interface Product {
   is_featured?: boolean;
   image_type?: string;
   sort_order?: number;
+  is_out_of_stock?: boolean;
 }
 
 const Index = () => {
@@ -183,12 +184,12 @@ const Index = () => {
                 <Link 
                     key={product.id} 
                     to={`/${product.slug || product.id}`}
-                    className="group relative bg-card border border-border flex flex-col h-full rounded-xl shadow-sm hover:shadow-2xl hover:shadow-neon/10 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                    className={`group relative bg-card border flex flex-col h-full rounded-xl shadow-sm transition-all duration-300 overflow-hidden ${product.is_out_of_stock ? 'border-red-500/20 grayscale opacity-90' : 'border-border hover:shadow-2xl hover:shadow-neon/10 hover:-translate-y-1'}`}
                 >
                     {/* Featured/Badge Overlay */}
-                    {(product.badge) && (
-                         <div className={`absolute top-0 right-0 z-20 px-4 py-1 text-xs font-bold uppercase tracking-wider rounded-bl-lg shadow-md ${product.is_featured ? 'bg-neon text-black' : 'bg-foreground text-background'}`}>
-                            {product.badge}
+                    {(product.badge || product.is_out_of_stock) && (
+                         <div className={`absolute top-0 right-0 z-20 px-4 py-1 text-xs font-bold uppercase tracking-wider rounded-bl-lg shadow-md ${product.is_out_of_stock ? 'bg-red-500 text-white' : product.is_featured ? 'bg-neon text-black' : 'bg-foreground text-background'}`}>
+                            {product.is_out_of_stock ? 'AGOTADO' : product.badge}
                          </div>
                     )}
 
@@ -237,7 +238,7 @@ const Index = () => {
                                         </div>
                                     )}
                                     <div className="flex items-baseline gap-1">
-                                        <span className="text-2xl font-black text-foreground tracking-tighter group-hover:text-neon transition-colors">
+                                        <span className={`text-2xl font-black text-foreground tracking-tighter group-hover:text-neon transition-colors ${product.is_out_of_stock ? 'text-muted-foreground' : ''}`}>
                                             {product.price_display || (product.price === 0 ? "GRATIS" : `$${product.price}`)}
                                         </span>
                                     </div>
@@ -248,8 +249,8 @@ const Index = () => {
                                     )}
                                 </div>
                                 
-                                <div className="h-10 w-10 rounded-full bg-secondary group-hover:bg-neon flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm">
-                                    <ArrowRight className="w-5 h-5 text-foreground group-hover:text-black" />
+                                <div className={`h-10 w-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm ${product.is_out_of_stock ? 'bg-muted text-muted-foreground' : 'bg-secondary group-hover:bg-neon group-hover:scale-110'}`}>
+                                    {product.is_out_of_stock ? <Ban className="w-5 h-5" /> : <ArrowRight className="w-5 h-5 text-foreground group-hover:text-black" />}
                                 </div>
                              </div>
                           </div>

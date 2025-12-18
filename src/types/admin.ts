@@ -18,6 +18,7 @@ export interface Product {
   is_featured: boolean;
   image_type: string;
   sort_order: number;
+  is_out_of_stock: boolean; // Nuevo campo
 }
 
 export interface AdminOrder {

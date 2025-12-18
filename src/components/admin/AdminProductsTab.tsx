@@ -7,8 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Loader2, Package, ShoppingBag, FolderKanban, Link as LinkIcon, X, GripVertical } from "lucide-react";
+import { Trash2, Loader2, Package, ShoppingBag, FolderKanban, Link as LinkIcon, X, GripVertical, PlusCircle, RotateCcw, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { AdminAIAssistant } from "@/components/AdminAIAssistant";
 import { ProductContentManager } from "@/components/ProductContentManager";
 import { Product } from "@/types/admin";
@@ -67,7 +68,7 @@ const SortableProductCard = ({
     <Card 
         ref={setNodeRef} 
         style={style} 
-        className="overflow-hidden group hover:border-neon/50 transition-colors mb-4 relative"
+        className={`overflow-hidden group transition-colors mb-4 relative ${product.is_out_of_stock ? 'border-red-500/30 bg-red-500/5' : 'hover:border-neon/50'}`}
     >
         <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-start md:items-center">
             {/* Drag Handle */}
@@ -88,6 +89,7 @@ const SortableProductCard = ({
                     <h3 className="font-bold text-lg truncate">{product.title}</h3>
                     {product.is_featured && <Badge className="bg-neon text-black text-[10px]">FEATURED</Badge>}
                     {product.is_free && <Badge variant="outline" className="text-[10px]">FREE</Badge>}
+                    {product.is_out_of_stock && <Badge variant="destructive" className="text-[10px]">AGOTADO</Badge>}
                 </div>
                 <div className="flex items-center gap-2 text-xs font-mono text-neon mt-1">
                     <span>/{product.slug}</span>
@@ -135,7 +137,8 @@ export function AdminProductsTab({ products: initialProducts, onRefresh }: Admin
     price_microcopy: "Pago único · Acceso de por vida",
     is_featured: false,
     image_type: "chart-line-up",
-    gallery_images: []
+    gallery_images: [],
+    is_out_of_stock: false
   });
   const [featuresInput, setFeaturesInput] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -163,29 +166,16 @@ export function AdminProductsTab({ products: initialProducts, onRefresh }: Admin
         const newOrder = arrayMove(localProducts, oldIndex, newIndex);
         setLocalProducts(newOrder); // Optimistic UI update
 
-        // Update DB
         const updates = newOrder.map((item, index) => ({
             id: item.id,
             sort_order: index,
-            // Need to include minimal required fields for update or just id and sort_order if updating specific columns?
-            // Supabase .upsert needs PK. .update needs filtering but we are batching.
-            // Best approach for batch reorder: Use UPSERT with minimal fields if table allows nulls or pass all.
-            // Actually, simply iterating and updating is safer for partial updates, although slower.
-            // Or use an RPC. For simplicity and low volume (<100 products), loop updates are acceptable or upsert with just ID/Sort if allowed.
-            // However, upsert might overwrite other fields if not provided? No, it only updates provided fields if match.
-            // Wait, upsert requires all NOT NULL fields if it decides to insert. But since IDs exist, it's an update.
-            // Let's try upserting just ID and sort_order.
         }));
 
-        // NOTE: upsert is tricky with partial data. Let's do a loop for safety or create a dedicated RPC later if slow.
-        // For < 50 items, Promise.all with updates is fine.
         try {
             await Promise.all(
                 updates.map(u => supabase.from('products').update({ sort_order: u.sort_order }).eq('id', u.id))
             );
             toast({ title: "Orden actualizado" });
-            // No need to onRefresh immediately if local state is correct, but good to sync.
-            // onRefresh(); 
         } catch (error) {
             console.error("Error reordering", error);
             toast({ title: "Error guardando orden", variant: "destructive" });
@@ -256,7 +246,6 @@ export function AdminProductsTab({ products: initialProducts, onRefresh }: Admin
           slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
       }
 
-      // Default sort_order to end of list for new items
       let sort_order = 0;
       if (!editingId && localProducts.length > 0) {
           sort_order = Math.max(...localProducts.map(p => p.sort_order || 0)) + 1;
@@ -305,10 +294,12 @@ export function AdminProductsTab({ products: initialProducts, onRefresh }: Admin
         price_microcopy: "Pago único · Acceso de por vida",
         is_featured: false,
         image_type: "chart-line-up",
-        gallery_images: []
+        gallery_images: [],
+        is_out_of_stock: false
     });
     setFeaturesInput("");
     setEditingId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   const handleEdit = (product: Product) => {
@@ -351,12 +342,27 @@ export function AdminProductsTab({ products: initialProducts, onRefresh }: Admin
         {/* Form Section */}
         <div className="lg:col-span-1">
             <Card className="sticky top-24 border-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="flex items-center gap-2">
-                    <Package className="w-5 h-5 text-neon" />
-                    {editingId ? "Edit Product" : "Nuevo Producto"}
-                </CardTitle>
-                <AdminAIAssistant onGenerate={handleAIGenerated} />
+            <CardHeader className="flex flex-col space-y-4 pb-2">
+                <div className="flex flex-row items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                        <Package className="w-5 h-5 text-neon" />
+                        {editingId ? "Editando Producto" : "Nuevo Producto"}
+                    </CardTitle>
+                    <AdminAIAssistant onGenerate={handleAIGenerated} />
+                </div>
+                
+                {/* Botón explícito para resetear/nuevo */}
+                {editingId && (
+                    <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        onClick={resetForm} 
+                        className="w-full gap-2 border border-dashed border-muted-foreground/30"
+                    >
+                        <PlusCircle className="w-4 h-4" /> 
+                        Cancelar Edición / Crear Nuevo
+                    </Button>
+                )}
             </CardHeader>
             <CardContent className="pt-4">
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -487,24 +493,39 @@ export function AdminProductsTab({ products: initialProducts, onRefresh }: Admin
                     </div>
                 </div>
                 
-                <div className="flex gap-4 pt-4 border-t border-border mt-4">
-                    <div className="flex items-center space-x-2">
-                    <Checkbox id="is_free" checked={formData.is_free} onCheckedChange={(c) => handleCheckboxChange("is_free", c as boolean)} />
-                    <label htmlFor="is_free" className="text-sm font-medium">Is Free?</label>
+                <div className="flex flex-col gap-4 pt-4 border-t border-border mt-4">
+                    <div className="grid grid-cols-2 gap-4">
+                         <div className="flex items-center space-x-2 border p-2 rounded border-border">
+                            <Checkbox id="is_free" checked={formData.is_free} onCheckedChange={(c) => handleCheckboxChange("is_free", c as boolean)} />
+                            <label htmlFor="is_free" className="text-sm font-medium cursor-pointer">Es Gratis</label>
+                        </div>
+                        <div className="flex items-center space-x-2 border p-2 rounded border-border">
+                            <Checkbox id="is_featured" checked={formData.is_featured} onCheckedChange={(c) => handleCheckboxChange("is_featured", c as boolean)} />
+                            <label htmlFor="is_featured" className="text-sm font-medium cursor-pointer">Destacado</label>
+                        </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                    <Checkbox id="is_featured" checked={formData.is_featured} onCheckedChange={(c) => handleCheckboxChange("is_featured", c as boolean)} />
-                    <label htmlFor="is_featured" className="text-sm font-medium">Featured?</label>
+
+                    {/* Stock Control */}
+                    <div className="flex items-center justify-between space-x-2 border border-red-500/30 bg-red-500/5 p-3 rounded">
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 text-red-500" />
+                            <label htmlFor="is_out_of_stock" className="text-sm font-medium cursor-pointer text-red-200">
+                                ¿Producto Agotado?
+                            </label>
+                        </div>
+                        <Switch 
+                            id="is_out_of_stock" 
+                            checked={formData.is_out_of_stock} 
+                            onCheckedChange={(c) => handleCheckboxChange("is_out_of_stock", c)}
+                            className="data-[state=checked]:bg-red-500"
+                        />
                     </div>
                 </div>
 
                 <div className="flex gap-2 pt-4">
                     <Button type="submit" className="w-full bg-neon text-black hover:bg-neon/90" disabled={loading || uploading}>
-                    {loading ? <Loader2 className="animate-spin" /> : (editingId ? "Update Product" : "Create Product")}
+                    {loading ? <Loader2 className="animate-spin" /> : (editingId ? "Guardar Cambios" : "Crear Producto")}
                     </Button>
-                    {editingId && (
-                    <Button type="button" variant="outline" onClick={resetForm}>Cancel</Button>
-                    )}
                 </div>
                 </form>
             </CardContent>

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Star, Download, ShoppingCart, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Star, Download, ShoppingCart, Image as ImageIcon, Ban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { AuthModal } from "@/components/AuthModal";
@@ -31,6 +31,7 @@ interface Product {
   price_microcopy: string;
   is_featured: boolean;
   image_type: string;
+  is_out_of_stock: boolean; // Agregado
 }
 
 const ProductDetail = () => {
@@ -188,6 +189,8 @@ const ProductDetail = () => {
 
   const handlePrimaryAction = async () => {
     if (!product) return;
+    if (product.is_out_of_stock && !userHasProduct) return; // Bloqueo extra por seguridad
+    
     if (userHasProduct) {
         navigate(`/my-products/${product.id}`);
         return;
@@ -208,6 +211,8 @@ const ProductDetail = () => {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 animate-spin text-neon" /></div>;
   if (!product) return <Navigate to="/" replace />;
+
+  const isOutOfStock = product.is_out_of_stock && !userHasProduct;
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans pb-20 md:pb-0 selection:bg-neon selection:text-black">
@@ -233,11 +238,19 @@ const ProductDetail = () => {
                     <img 
                         src={allImages[currentImageIndex]} 
                         alt={product.title} 
-                        className="w-full h-full object-contain transition-all duration-300"
+                        className={`w-full h-full object-contain transition-all duration-300 ${isOutOfStock ? 'grayscale opacity-70' : ''}`}
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-neon/20">
                         <Zap className="w-20 h-20" />
+                    </div>
+                )}
+                
+                {isOutOfStock && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-20">
+                        <Badge variant="destructive" className="text-xl px-6 py-2 uppercase tracking-widest">
+                            AGOTADO / CERRADO
+                        </Badge>
                     </div>
                 )}
                 
@@ -305,6 +318,7 @@ const ProductDetail = () => {
                     <Badge variant="outline" className="text-neon border-neon/50 text-xs px-3 py-1 bg-neon/5 font-bold uppercase tracking-wider">Sistema Premium</Badge>
                   )}
                   {product.is_featured && <span className="flex items-center text-xs text-amber-400 font-bold"><Star className="w-3 h-3 mr-1 fill-current"/> TOP SELLER</span>}
+                  {isOutOfStock && <Badge variant="destructive" className="uppercase">Ventas Cerradas</Badge>}
                </div>
                
                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-foreground mb-6 leading-[0.9] tracking-tighter uppercase">
@@ -320,7 +334,7 @@ const ProductDetail = () => {
                {/* Pricing Box - Sticky on Mobile via other logic, but here is desktop */}
                <div className="bg-card border border-border rounded-xl p-6 shadow-2xl relative overflow-hidden group" id="hero-action">
                    <div className="flex items-baseline gap-2 mb-2">
-                       <span className="text-4xl font-black text-white tracking-tight">
+                       <span className={`text-4xl font-black text-white tracking-tight ${isOutOfStock ? 'opacity-50' : ''}`}>
                            {product.price_display || (product.price === 0 ? "GRATIS" : `$${product.price}`)}
                        </span>
                        {product.original_price_display && !product.is_free && (
@@ -336,24 +350,29 @@ const ProductDetail = () => {
 
                    <Button 
                     onClick={handlePrimaryAction}
-                    disabled={isProcessing}
+                    disabled={isProcessing || isOutOfStock}
                     className={`w-full font-bold text-lg h-14 rounded-lg transition-all uppercase tracking-wide disabled:opacity-70 ${
                         userHasProduct 
                         ? "bg-secondary text-secondary-foreground hover:bg-secondary/90" 
-                        : "bg-neon text-black hover:bg-neon/90 hover:scale-[1.01] shadow-[0_0_20px_rgba(212,232,58,0.3)] hover:shadow-[0_0_30px_rgba(212,232,58,0.5)]"
+                        : isOutOfStock
+                            ? "bg-muted text-muted-foreground cursor-not-allowed border border-border"
+                            : "bg-neon text-black hover:bg-neon/90 hover:scale-[1.01] shadow-[0_0_20px_rgba(212,232,58,0.3)] hover:shadow-[0_0_30px_rgba(212,232,58,0.5)]"
                     }`}
                   >
                     {isProcessing ? <Loader2 className="animate-spin mr-2" /> : null}
                     {isProcessing ? "Procesando..." : (
                         userHasProduct 
                             ? <span className="flex items-center"><Download className="mr-2 w-5 h-5"/> ACCEDER AHORA</span> 
-                            : (
-                                product.is_free 
-                                ? "DESCARGAR GRATIS"
-                                : <span className="flex items-center"><ShoppingCart className="mr-2 w-5 h-5"/> AGREGAR AL CARRITO</span>
-                            )
+                            : isOutOfStock 
+                                ? <span className="flex items-center"><Ban className="mr-2 w-5 h-5"/> NO DISPONIBLE</span>
+                                : (
+                                    product.is_free 
+                                    ? "DESCARGAR GRATIS"
+                                    : <span className="flex items-center"><ShoppingCart className="mr-2 w-5 h-5"/> AGREGAR AL CARRITO</span>
+                                )
                     )} 
                   </Button>
+                  {isOutOfStock && <p className="text-xs text-red-400 mt-2 text-center font-bold">Actualmente no aceptamos nuevos miembros para este producto.</p>}
                </div>
             </div>
 
@@ -481,9 +500,14 @@ const ProductDetail = () => {
                    </p>
                    <Button 
                     onClick={handlePrimaryAction}
-                    className="bg-neon text-black hover:bg-neon/90 font-bold text-lg px-8 py-6 rounded-lg shadow-[0_0_20px_rgba(212,232,58,0.4)] hover:shadow-[0_0_40px_rgba(212,232,58,0.6)] transition-all"
+                    disabled={isOutOfStock}
+                    className={`font-bold text-lg px-8 py-6 rounded-lg transition-all ${
+                        isOutOfStock 
+                            ? "bg-muted text-muted-foreground cursor-not-allowed" 
+                            : "bg-neon text-black hover:bg-neon/90 shadow-[0_0_20px_rgba(212,232,58,0.4)] hover:shadow-[0_0_40px_rgba(212,232,58,0.6)]"
+                    }`}
                    >
-                       {userHasProduct ? "ACCEDER AHORA" : (product.is_free ? "DESCARGAR GRATIS" : "COMPRAR AHORA")}
+                       {userHasProduct ? "ACCEDER AHORA" : isOutOfStock ? "NO DISPONIBLE" : (product.is_free ? "DESCARGAR GRATIS" : "COMPRAR AHORA")}
                    </Button>
                </div>
           </div>
@@ -500,11 +524,11 @@ const ProductDetail = () => {
               </div>
               <Button 
                 onClick={handlePrimaryAction} 
-                disabled={isProcessing}
+                disabled={isProcessing || isOutOfStock}
                 size="sm" 
-                className={`font-bold rounded-md px-6 shadow-[0_0_15px_rgba(212,232,58,0.4)] disabled:opacity-70 ${userHasProduct ? "bg-secondary text-secondary-foreground" : "bg-neon text-black hover:bg-neon/90"}`}
+                className={`font-bold rounded-md px-6 shadow-[0_0_15px_rgba(212,232,58,0.4)] disabled:opacity-70 ${userHasProduct ? "bg-secondary text-secondary-foreground" : isOutOfStock ? "bg-muted text-muted-foreground" : "bg-neon text-black hover:bg-neon/90"}`}
               >
-                 {isProcessing ? <Loader2 className="animate-spin" /> : (userHasProduct ? "ACCEDER" : (product.is_free ? "GRATIS" : <ShoppingCart className="w-5 h-5" />))}
+                 {isProcessing ? <Loader2 className="animate-spin" /> : (userHasProduct ? "ACCEDER" : isOutOfStock ? "AGOTADO" : (product.is_free ? "GRATIS" : <ShoppingCart className="w-5 h-5" />))}
               </Button>
           </div>
       </div>
