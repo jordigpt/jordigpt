@@ -238,7 +238,7 @@ const ProductDetail = () => {
                     <img 
                         src={allImages[currentImageIndex]} 
                         alt={product.title} 
-                        className={`w-full h-full object-contain transition-all duration-300 ${isOutOfStock ? 'grayscale opacity-70' : ''}`}
+                        className={`w-full h-full object-contain transition-all duration-300 ${isOutOfStock ? 'opacity-70' : ''}`}
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-neon/20">

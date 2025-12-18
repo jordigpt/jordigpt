@@ -184,7 +184,7 @@ const Index = () => {
                 <Link 
                     key={product.id} 
                     to={`/${product.slug || product.id}`}
-                    className={`group relative bg-card border flex flex-col h-full rounded-xl shadow-sm transition-all duration-300 overflow-hidden ${product.is_out_of_stock ? 'border-red-500/20 grayscale opacity-90' : 'border-border hover:shadow-2xl hover:shadow-neon/10 hover:-translate-y-1'}`}
+                    className={`group relative bg-card border flex flex-col h-full rounded-xl shadow-sm transition-all duration-300 overflow-hidden ${product.is_out_of_stock ? 'border-red-500/20 opacity-90' : 'border-border hover:shadow-2xl hover:shadow-neon/10 hover:-translate-y-1'}`}
                 >
                     {/* Featured/Badge Overlay */}
                     {(product.badge || product.is_out_of_stock) && (
