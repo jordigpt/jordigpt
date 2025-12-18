@@ -4,13 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Loader2, Settings, Sparkles } from "lucide-react";
+import { LogOut, Loader2, Settings, Sparkles, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Product } from "@/types/admin";
 import { AdminProductsTab } from "@/components/admin/AdminProductsTab";
 import { AdminOrdersTab } from "@/components/admin/AdminOrdersTab";
 import { AdminPromptsTab } from "@/components/admin/AdminPromptsTab";
 import { AdminSettingsTab } from "@/components/admin/AdminSettingsTab";
+import { AdminUsersTab } from "@/components/admin/AdminUsersTab";
 
 const ADMIN_EMAIL = "jordithecreative@gmail.com";
 
@@ -74,12 +75,15 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="products" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 max-w-[800px] mb-8">
+            <TabsList className="grid w-full grid-cols-5 max-w-[900px] mb-8">
                 <TabsTrigger value="products">Inventory</TabsTrigger>
                 <TabsTrigger value="prompts">
                     <Sparkles className="w-4 h-4 mr-2" /> Gallery
                 </TabsTrigger>
                 <TabsTrigger value="orders">Sales</TabsTrigger>
+                <TabsTrigger value="users">
+                    <Users className="w-4 h-4 mr-2" /> Users
+                </TabsTrigger>
                 <TabsTrigger value="settings" className="data-[state=active]:text-neon">
                     <Settings className="w-4 h-4 mr-2" /> Config
                 </TabsTrigger>
@@ -95,6 +99,10 @@ const Admin = () => {
 
             <TabsContent value="orders">
                 <AdminOrdersTab products={products} />
+            </TabsContent>
+
+            <TabsContent value="users">
+                <AdminUsersTab />
             </TabsContent>
 
             <TabsContent value="settings">
