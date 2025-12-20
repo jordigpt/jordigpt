@@ -2,12 +2,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
 import { Trash2, ShoppingCart, Loader2, CreditCard } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AuthModal } from "@/components/AuthModal";
-import { PayPalButtons } from "@paypal/react-paypal-js";
+// import { PayPalButtons } from "@paypal/react-paypal-js";
 import { Separator } from "@/components/ui/separator";
 
 export function CartSheet() {
@@ -54,7 +53,7 @@ export function CartSheet() {
     }
   };
 
-  // --- CHECKOUT PAYPAL ---
+  /* --- CHECKOUT PAYPAL (DESHABILITADO TEMPORALMENTE) ---
   const createPayPalOrder = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -94,6 +93,7 @@ export function CartSheet() {
           window.location.href = "/payment/success";
       }
   };
+  */
 
   return (
     <>
@@ -171,6 +171,7 @@ export function CartSheet() {
                             <span className="absolute right-0 top-0 h-full w-12 bg-white/10 skew-x-12 -translate-x-3"></span>
                         </Button>
 
+                        {/* PAYPAL DESHABILITADO
                         <div className="relative py-2">
                             <div className="absolute inset-0 flex items-center">
                                 <span className="w-full border-t border-border" />
@@ -180,8 +181,7 @@ export function CartSheet() {
                             </div>
                         </div>
 
-                        {/* Opción 2: PayPal */}
-                        {/* FIX: Contenedor con fondo blanco para asegurar contraste del texto */}
+                        
                         <div className="w-full relative z-0 min-h-[150px] bg-white p-4 rounded-lg shadow-sm">
                             <PayPalButtons 
                                 style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
@@ -193,6 +193,7 @@ export function CartSheet() {
                                 }}
                             />
                         </div>
+                        */}
 
                         <p className="text-[10px] text-center text-muted-foreground uppercase tracking-wider">
                             Transacciones seguras encriptadas SSL · Acceso Inmediato

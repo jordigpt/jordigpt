@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CartProvider } from "@/context/CartContext";
-import { PayPalScriptProvider } from "@paypal/react-paypal-js";
+// import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { CartSheet } from "@/components/CartSheet";
 import Index from "./pages/Index";
 import ProductDetail from "./pages/ProductDetail";
@@ -19,18 +19,20 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// PayPal Options
+// PayPal Options (Disabled)
+/*
 const initialOptions = {
     clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID || "test", // Fallback to test if not set
     currency: "USD",
     intent: "capture",
 };
+*/
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <TooltipProvider>
-        <PayPalScriptProvider options={initialOptions}>
+        {/* <PayPalScriptProvider options={initialOptions}> */}
             <CartProvider>
                 <Toaster />
                 <Sonner />
@@ -58,7 +60,7 @@ const App = () => (
                 </Routes>
                 </BrowserRouter>
             </CartProvider>
-        </PayPalScriptProvider>
+        {/* </PayPalScriptProvider> */}
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
