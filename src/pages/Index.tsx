@@ -34,6 +34,7 @@ interface Product {
   image_type?: string;
   sort_order?: number;
   is_out_of_stock?: boolean;
+  gumroad_link?: string;
 }
 
 const Index = () => {

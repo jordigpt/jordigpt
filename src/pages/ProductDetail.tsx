@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Star, Download, ShoppingCart, Image as ImageIcon, Ban, Gift } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Star, Download, ShoppingCart, Image as ImageIcon, Ban, Gift, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { AuthModal } from "@/components/AuthModal";
@@ -31,7 +31,8 @@ interface Product {
   price_microcopy: string;
   is_featured: boolean;
   image_type: string;
-  is_out_of_stock: boolean; // Agregado
+  is_out_of_stock: boolean;
+  gumroad_link?: string;
 }
 
 const ProductDetail = () => {
@@ -189,12 +190,21 @@ const ProductDetail = () => {
 
   const handlePrimaryAction = async () => {
     if (!product) return;
-    if (product.is_out_of_stock && !userHasProduct) return; // Bloqueo extra por seguridad
+    if (product.is_out_of_stock && !userHasProduct) return;
     
+    // 1. Si ya tiene el producto, ir al contenido interno
     if (userHasProduct) {
         navigate(`/my-products/${product.id}`);
         return;
     }
+
+    // 2. NUEVO: Si tiene link de Gumroad, abrir afuera
+    if (product.gumroad_link) {
+        window.open(product.gumroad_link, '_blank');
+        return;
+    }
+
+    // 3. Flujo normal (Free o Carrito Interno)
     if (!session) {
         setAuthModalOpen(true);
         return;
@@ -213,6 +223,7 @@ const ProductDetail = () => {
   if (!product) return <Navigate to="/" replace />;
 
   const isOutOfStock = product.is_out_of_stock && !userHasProduct;
+  const isGumroadProduct = !!product.gumroad_link && !product.is_free;
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans pb-20 md:pb-0 selection:bg-neon selection:text-black">
@@ -304,7 +315,7 @@ const ProductDetail = () => {
                     </div>
                     <div className="flex flex-col">
                         <span className="font-bold text-sm">{product.is_free ? "Acceso Gratuito" : "Pago Seguro"}</span>
-                        <span className="text-xs text-muted-foreground">{product.is_free ? "Sin tarjeta requerida" : "Encriptado SSL"}</span>
+                        <span className="text-xs text-muted-foreground">{product.is_free ? "Sin tarjeta requerida" : (isGumroadProduct ? "Vía Gumroad" : "Encriptado SSL")}</span>
                     </div>
                 </div>
             </div>
@@ -370,7 +381,10 @@ const ProductDetail = () => {
                                 : (
                                     product.is_free 
                                     ? "DESCARGAR GRATIS"
-                                    : <span className="flex items-center"><ShoppingCart className="mr-2 w-5 h-5"/> AGREGAR AL CARRITO</span>
+                                    : (isGumroadProduct 
+                                        ? <span className="flex items-center">IR AL CHECKOUT <ArrowRight className="ml-2 w-5 h-5"/></span>
+                                        : <span className="flex items-center"><ShoppingCart className="mr-2 w-5 h-5"/> AGREGAR AL CARRITO</span>
+                                      )
                                 )
                     )} 
                   </Button>
@@ -509,7 +523,7 @@ const ProductDetail = () => {
                             : "bg-neon text-black hover:bg-neon/90 shadow-[0_0_20px_rgba(212,232,58,0.4)] hover:shadow-[0_0_40px_rgba(212,232,58,0.6)]"
                     }`}
                    >
-                       {userHasProduct ? "ACCEDER AHORA" : isOutOfStock ? "NO DISPONIBLE" : (product.is_free ? "DESCARGAR GRATIS" : "COMPRAR AHORA")}
+                       {userHasProduct ? "ACCEDER AHORA" : isOutOfStock ? "NO DISPONIBLE" : (product.is_free ? "DESCARGAR GRATIS" : (isGumroadProduct ? "IR AL CHECKOUT" : "COMPRAR AHORA"))}
                    </Button>
                </div>
           </div>
@@ -530,7 +544,7 @@ const ProductDetail = () => {
                 size="sm" 
                 className={`font-bold rounded-md px-6 shadow-[0_0_15px_rgba(212,232,58,0.4)] disabled:opacity-70 ${userHasProduct ? "bg-secondary text-secondary-foreground" : isOutOfStock ? "bg-muted text-muted-foreground" : "bg-neon text-black hover:bg-neon/90"}`}
               >
-                 {isProcessing ? <Loader2 className="animate-spin" /> : (userHasProduct ? "ACCEDER" : isOutOfStock ? "AGOTADO" : (product.is_free ? "GRATIS" : <ShoppingCart className="w-5 h-5" />))}
+                 {isProcessing ? <Loader2 className="animate-spin" /> : (userHasProduct ? "ACCEDER" : isOutOfStock ? "AGOTADO" : (product.is_free ? "GRATIS" : (isGumroadProduct ? <ArrowRight className="w-5 h-5" /> : <ShoppingCart className="w-5 h-5" />)))}
               </Button>
           </div>
       </div>

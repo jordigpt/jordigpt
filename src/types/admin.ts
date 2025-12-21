@@ -18,7 +18,8 @@ export interface Product {
   is_featured: boolean;
   image_type: string;
   sort_order: number;
-  is_out_of_stock: boolean; // Nuevo campo
+  is_out_of_stock: boolean;
+  gumroad_link?: string; // Nuevo campo
 }
 
 export interface AdminOrder {

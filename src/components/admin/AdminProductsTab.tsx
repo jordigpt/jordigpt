@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Loader2, Package, ShoppingBag, FolderKanban, Link as LinkIcon, X, GripVertical, PlusCircle, RotateCcw, AlertTriangle } from "lucide-react";
+import { Trash2, Loader2, Package, ShoppingBag, FolderKanban, Link as LinkIcon, X, GripVertical, PlusCircle, AlertTriangle, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { AdminAIAssistant } from "@/components/AdminAIAssistant";
@@ -90,6 +90,7 @@ const SortableProductCard = ({
                     {product.is_featured && <Badge className="bg-neon text-black text-[10px]">FEATURED</Badge>}
                     {product.is_free && <Badge variant="outline" className="text-[10px]">FREE</Badge>}
                     {product.is_out_of_stock && <Badge variant="destructive" className="text-[10px]">AGOTADO</Badge>}
+                    {product.gumroad_link && <Badge variant="secondary" className="text-[10px] bg-pink-500/10 text-pink-500 border-pink-500/20">GUMROAD</Badge>}
                 </div>
                 <div className="flex items-center gap-2 text-xs font-mono text-neon mt-1">
                     <span>/{product.slug}</span>
@@ -138,7 +139,8 @@ export function AdminProductsTab({ products: initialProducts, onRefresh }: Admin
     is_featured: false,
     image_type: "chart-line-up",
     gallery_images: [],
-    is_out_of_stock: false
+    is_out_of_stock: false,
+    gumroad_link: ""
   });
   const [featuresInput, setFeaturesInput] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -295,7 +297,8 @@ export function AdminProductsTab({ products: initialProducts, onRefresh }: Admin
         is_featured: false,
         image_type: "chart-line-up",
         gallery_images: [],
-        is_out_of_stock: false
+        is_out_of_stock: false,
+        gumroad_link: ""
     });
     setFeaturesInput("");
     setEditingId(null);
@@ -396,15 +399,34 @@ export function AdminProductsTab({ products: initialProducts, onRefresh }: Admin
                     <Textarea id="full_description" name="full_description" value={formData.full_description} onChange={handleInputChange} className="h-32 bg-background/50" />
                 </div>
 
-                {/* Pricing */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                    <Label htmlFor="price">Price (Num)</Label>
-                    <Input type="number" id="price" name="price" value={formData.price} onChange={handleInputChange} className="bg-background/50" />
+                {/* Pricing & External Link */}
+                <div className="border border-neon/20 bg-neon/5 p-4 rounded-lg space-y-4">
+                    <h4 className="text-xs font-bold text-neon uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <ExternalLink className="w-3 h-3" /> Configuración de Venta
+                    </h4>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                        <Label htmlFor="price">Price (Num)</Label>
+                        <Input type="number" id="price" name="price" value={formData.price} onChange={handleInputChange} className="bg-background/50" />
+                        </div>
+                        <div>
+                        <Label htmlFor="price_display">Display</Label>
+                        <Input id="price_display" name="price_display" value={formData.price_display} onChange={handleInputChange} placeholder="US$ 29.99" className="bg-background/50" />
+                        </div>
                     </div>
+
                     <div>
-                    <Label htmlFor="price_display">Display</Label>
-                    <Input id="price_display" name="price_display" value={formData.price_display} onChange={handleInputChange} placeholder="US$ 29.99" className="bg-background/50" />
+                        <Label htmlFor="gumroad_link" className="text-pink-500 font-bold">Link de Gumroad (Checkout Externo)</Label>
+                        <Input 
+                            id="gumroad_link" 
+                            name="gumroad_link" 
+                            value={formData.gumroad_link || ""} 
+                            onChange={handleInputChange} 
+                            placeholder="https://gumroad.com/l/tu-producto" 
+                            className="bg-background/50 border-pink-500/30 focus:border-pink-500" 
+                        />
+                        <p className="text-[10px] text-muted-foreground mt-1">Si llenas esto, el botón "Comprar" llevará aquí en vez de al carrito.</p>
                     </div>
                 </div>
 
