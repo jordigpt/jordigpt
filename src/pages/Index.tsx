@@ -180,7 +180,7 @@ const Index = () => {
                 <Loader2 className="w-10 h-10 animate-spin text-neon" />
              </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
                 {products.map((product) => (
                 <Link 
                     key={product.id} 
@@ -189,7 +189,7 @@ const Index = () => {
                 >
                     {/* Featured/Badge Overlay */}
                     {(product.badge || product.is_out_of_stock) && (
-                         <div className={`absolute top-0 right-0 z-20 px-4 py-1 text-xs font-bold uppercase tracking-wider rounded-bl-lg shadow-md ${product.is_out_of_stock ? 'bg-red-500 text-white' : product.is_featured ? 'bg-neon text-black' : 'bg-foreground text-background'}`}>
+                         <div className={`absolute top-0 right-0 z-20 px-2 py-0.5 md:px-4 md:py-1 text-[9px] md:text-xs font-bold uppercase tracking-wider rounded-bl-lg shadow-md ${product.is_out_of_stock ? 'bg-red-500 text-white' : product.is_featured ? 'bg-neon text-black' : 'bg-foreground text-background'}`}>
                             {product.is_out_of_stock ? 'AGOTADO' : product.badge}
                          </div>
                     )}
@@ -211,13 +211,13 @@ const Index = () => {
                       )}
                     </div>
 
-                    <div className="p-6 flex flex-col flex-1 relative z-20 -mt-12">
+                    <div className="p-3 md:p-6 flex flex-col flex-1 relative z-20 -mt-8 md:-mt-12">
                       {/* Product Card Body */}
-                      <div className="bg-card border border-border rounded-lg p-5 shadow-lg flex-1 flex flex-col">
-                          <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-neon transition-colors leading-tight">
+                      <div className="bg-card border border-border rounded-lg p-3 md:p-5 shadow-lg flex-1 flex flex-col">
+                          <h3 className="text-sm md:text-lg font-bold text-foreground mb-1 md:mb-2 group-hover:text-neon transition-colors leading-tight line-clamp-2">
                               {product.title}
                           </h3>
-                          <p className="text-muted-foreground text-xs leading-relaxed mb-4 line-clamp-3">
+                          <p className="text-muted-foreground text-[10px] md:text-xs leading-relaxed mb-3 md:mb-4 line-clamp-2 md:line-clamp-3">
                               {product.short_description}
                           </p>
                           
@@ -225,33 +225,33 @@ const Index = () => {
                           <div className="w-full h-px bg-border/50 my-auto"></div>
 
                           {/* Pricing Section - No Brainer Style */}
-                          <div className="pt-4 mt-2">
+                          <div className="pt-3 md:pt-4 mt-2">
                              <div className="flex items-center justify-between">
                                 <div className="flex flex-col">
                                     {product.original_price_display && !product.is_free && (
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-xs text-muted-foreground line-through decoration-destructive/60">
+                                        <div className="flex items-center gap-1 md:gap-2 mb-1">
+                                            <span className="text-[10px] md:text-xs text-muted-foreground line-through decoration-destructive/60">
                                                 {product.original_price_display}
                                             </span>
-                                            <Badge variant="outline" className="text-[10px] h-4 px-1 py-0 border-neon/30 text-neon bg-neon/5">
+                                            <Badge variant="outline" className="text-[8px] md:text-[10px] h-3 md:h-4 px-1 py-0 border-neon/30 text-neon bg-neon/5">
                                                 OFERTA
                                             </Badge>
                                         </div>
                                     )}
                                     <div className="flex items-baseline gap-1">
-                                        <span className={`text-2xl font-black text-foreground tracking-tighter group-hover:text-neon transition-colors ${product.is_out_of_stock ? 'text-muted-foreground' : ''}`}>
+                                        <span className={`text-lg md:text-2xl font-black text-foreground tracking-tighter group-hover:text-neon transition-colors ${product.is_out_of_stock ? 'text-muted-foreground' : ''}`}>
                                             {product.price_display || (product.price === 0 ? "GRATIS" : `$${product.price}`)}
                                         </span>
                                     </div>
                                     {!product.is_free && (
-                                        <span className="text-[10px] text-muted-foreground font-medium">
+                                        <span className="text-[9px] md:text-[10px] text-muted-foreground font-medium hidden sm:inline-block">
                                             {product.price_microcopy ? "Pago único" : "Acceso inmediato"}
                                         </span>
                                     )}
                                 </div>
                                 
-                                <div className={`h-10 w-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm ${product.is_out_of_stock ? 'bg-muted text-muted-foreground' : 'bg-secondary group-hover:bg-neon group-hover:scale-110'}`}>
-                                    {product.is_out_of_stock ? <Ban className="w-5 h-5" /> : <ArrowRight className="w-5 h-5 text-foreground group-hover:text-black" />}
+                                <div className={`h-8 w-8 md:h-10 md:w-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm ${product.is_out_of_stock ? 'bg-muted text-muted-foreground' : 'bg-secondary group-hover:bg-neon group-hover:scale-110'}`}>
+                                    {product.is_out_of_stock ? <Ban className="w-4 h-4 md:w-5 md:h-5" /> : <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-foreground group-hover:text-black" />}
                                 </div>
                              </div>
                           </div>
