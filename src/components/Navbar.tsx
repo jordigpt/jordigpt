@@ -13,24 +13,37 @@ import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
 import { useCart } from "@/context/CartContext";
 
-const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
-
 const Navbar = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const { items, setIsOpen } = useCart();
 
   useEffect(() => {
+    const checkUserRole = async (uid: string | undefined) => {
+      if (!uid) {
+        setIsAdmin(false);
+        return;
+      }
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', uid)
+        .single();
+        
+      setIsAdmin(data?.role === 'admin');
+    };
+
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-      setIsAdmin(session?.user?.email === ADMIN_EMAIL);
+      checkUserRole(session?.user?.id);
     };
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setIsAdmin(session?.user?.email === ADMIN_EMAIL);
+      checkUserRole(session?.user?.id);
     });
 
     return () => subscription.unsubscribe();
