@@ -1,33 +1,27 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Users, UserPlus, ShoppingBag, Calendar, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Users, UserPlus, ShoppingBag, Calendar, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-
-interface UserData {
-  id: string;
-  email: string;
-  created_at: string;
-  last_sign_in_at: string;
-  first_name: string;
-  last_name: string;
-  total_orders: number;
-  total_spend: number;
-}
+import { UserData } from "@/types/admin";
 
 export function AdminUsersTab() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
 
   // KPIs State
   const [stats, setStats] = useState({
     totalUsers: 0,
-    newToday: 0,
-    activeBuyers: 0, // Han comprado/descargado al menos 1 vez
+    newToday: 0, // Nota: Esto será aproximado en base a la página actual o requeriría otro endpoint para exactitud total
+    activeBuyers: 0,
     conversionRate: 0
   });
 
@@ -35,67 +29,66 @@ export function AdminUsersTab() {
   const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    fetchUsers(page);
+  }, [page]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (pageNo: number) => {
     setLoading(true);
-    const { data, error } = await supabase.rpc('get_admin_users_data');
+    
+    // Llamada a la nueva función paginada
+    const { data, error } = await supabase.rpc('get_admin_users_data_paginated', {
+        page_no: pageNo,
+        page_size: pageSize
+    });
 
     if (error) {
       console.error("Error fetching users:", error);
     } else if (data) {
-      setUsers(data);
-      calculateStats(data);
-      prepareChartData(data);
+      setUsers(data as UserData[]);
+      
+      // Actualizar total count desde la primera fila (todas tienen el mismo full_count)
+      if (data.length > 0) {
+          const total = Number(data[0].full_count);
+          setTotalCount(total);
+          
+          // Actualizar KPIs básicos con la info disponible
+          // Nota: Para KPIs exactos de toda la DB se necesitaría una query separada 'get_admin_stats'
+          // Aquí usamos el total real para el conteo de usuarios
+          setStats(prev => ({
+              ...prev,
+              totalUsers: total
+          }));
+          
+          prepareChartData(data as UserData[]);
+      } else if (pageNo === 1) {
+          setTotalCount(0);
+      }
     }
     setLoading(false);
   };
 
-  const calculateStats = (data: UserData[]) => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-
-    const newUsers = data.filter(u => new Date(u.created_at).getTime() >= today).length;
-    const buyers = data.filter(u => u.total_orders > 0).length;
-
-    setStats({
-      totalUsers: data.length,
-      newToday: newUsers,
-      activeBuyers: buyers,
-      conversionRate: data.length > 0 ? (buyers / data.length) * 100 : 0
-    });
-  };
-
   const prepareChartData = (data: UserData[]) => {
-      // Agrupar por fecha (últimos 7 días o días con actividad)
+      // Gráfico basado en la vista actual (útil para ver tendencias recientes si ordenamos por fecha)
       const dateGroups: Record<string, number> = {};
       
-      // Ordenar por fecha ascendente para el gráfico
       [...data].reverse().forEach(user => {
           const date = new Date(user.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
           dateGroups[date] = (dateGroups[date] || 0) + 1;
       });
 
-      // Convertir a array
       const formatted = Object.keys(dateGroups).map(date => ({
           name: date,
           users: dateGroups[date]
       }));
 
-      // Tomar los últimos 14 registros para que el gráfico no explote
-      setChartData(formatted.slice(-14));
+      setChartData(formatted);
   };
 
-  const filteredUsers = users.filter(user => 
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.last_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
     <div className="space-y-8">
-        {/* 1. KPIs Section */}
+        {/* 1. KPIs Section (Simplificada para rendimiento) */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card className="border-border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -103,51 +96,19 @@ export function AdminUsersTab() {
                     <Users className="h-4 w-4 text-neon" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{stats.totalUsers}</div>
-                    <p className="text-xs text-muted-foreground">Registrados en la plataforma</p>
+                    <div className="text-2xl font-bold">{totalCount}</div>
+                    <p className="text-xs text-muted-foreground">Registrados en total</p>
                 </CardContent>
             </Card>
-            
-            <Card className="border-border">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Nuevos Hoy</CardTitle>
-                    <UserPlus className="h-4 w-4 text-neon" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{stats.newToday}</div>
-                    <p className="text-xs text-muted-foreground">Crecimiento diario</p>
-                </CardContent>
-            </Card>
-
-            <Card className="border-border">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Clientes Activos</CardTitle>
-                    <ShoppingBag className="h-4 w-4 text-neon" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{stats.activeBuyers}</div>
-                    <p className="text-xs text-muted-foreground">Tienen al menos 1 producto</p>
-                </CardContent>
-            </Card>
-
-            <Card className="border-border">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Conversión</CardTitle>
-                    <Calendar className="h-4 w-4 text-neon" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{stats.conversionRate.toFixed(1)}%</div>
-                    <p className="text-xs text-muted-foreground">De usuario a cliente</p>
-                </CardContent>
-            </Card>
+            {/* Otros KPIs estáticos o basados en vista actual */}
         </div>
 
         <div className="grid gap-4 md:grid-cols-7">
             {/* 2. Chart Section */}
-            <Card className="col-span-4 border-border">
+            <Card className="col-span-4 border-border hidden md:block">
                 <CardHeader>
-                    <CardTitle>Crecimiento de Usuarios</CardTitle>
-                    <CardDescription>Nuevos registros por día</CardDescription>
+                    <CardTitle>Actividad Reciente</CardTitle>
+                    <CardDescription>Usuarios en esta página</CardDescription>
                 </CardHeader>
                 <CardContent className="pl-2">
                     <div className="h-[200px] w-full">
@@ -179,54 +140,75 @@ export function AdminUsersTab() {
                 </CardContent>
             </Card>
 
-            {/* 3. Recent Users / List Section */}
-            <Card className="col-span-3 border-border flex flex-col">
-                <CardHeader>
+            {/* 3. User List Table with Pagination */}
+            <Card className="col-span-7 md:col-span-3 border-border flex flex-col">
+                <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Base de Datos</CardTitle>
-                    <div className="flex items-center space-x-2">
-                        <Search className="w-4 h-4 text-muted-foreground" />
-                        <Input 
-                            placeholder="Buscar email..." 
-                            className="h-8 bg-background/50" 
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
+                    <Badge variant="outline" className="text-xs">
+                        Página {page} de {totalPages || 1}
+                    </Badge>
                 </CardHeader>
-                <CardContent className="flex-1 overflow-auto max-h-[400px]">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Usuario</TableHead>
-                                <TableHead className="text-right">Productos</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredUsers.map((user) => (
-                                <TableRow key={user.id}>
-                                    <TableCell>
-                                        <div className="font-medium text-sm">{user.email}</div>
-                                        <div className="text-xs text-muted-foreground">
-                                            {new Date(user.created_at).toLocaleDateString()}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex flex-col items-end gap-1">
-                                            <Badge variant={user.total_orders > 0 ? "default" : "secondary"} className={user.total_orders > 0 ? "bg-neon text-black hover:bg-neon" : ""}>
-                                                {user.total_orders} Items
-                                            </Badge>
-                                            {user.total_spend > 0 && (
-                                                <span className="text-[10px] text-green-500 font-mono">
-                                                    ${user.total_spend}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </TableCell>
+                <CardContent className="flex-1 overflow-auto min-h-[300px]">
+                    {loading ? (
+                        <div className="flex h-full items-center justify-center py-10">
+                            <Loader2 className="h-8 w-8 animate-spin text-neon" />
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Usuario</TableHead>
+                                    <TableHead className="text-right">Info</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {users.map((user) => (
+                                    <TableRow key={user.id}>
+                                        <TableCell>
+                                            <div className="font-medium text-sm truncate max-w-[150px]" title={user.email}>{user.email}</div>
+                                            <div className="text-xs text-muted-foreground">
+                                                {new Date(user.created_at).toLocaleDateString()}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex flex-col items-end gap-1">
+                                                <Badge variant={user.total_orders > 0 ? "default" : "secondary"} className={user.total_orders > 0 ? "bg-neon text-black hover:bg-neon h-5 px-1.5" : "h-5 px-1.5"}>
+                                                    {user.total_orders} Items
+                                                </Badge>
+                                                {user.total_spend > 0 && (
+                                                    <span className="text-[10px] text-green-500 font-mono">
+                                                        ${user.total_spend}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
                 </CardContent>
+                <CardFooter className="border-t border-border pt-4 flex justify-between items-center">
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1 || loading}
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-xs text-muted-foreground">
+                        {users.length} resultados
+                    </span>
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page >= totalPages || loading}
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </CardFooter>
             </Card>
         </div>
     </div>

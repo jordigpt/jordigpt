@@ -19,7 +19,7 @@ export interface Product {
   image_type: string;
   sort_order: number;
   is_out_of_stock: boolean;
-  gumroad_link?: string; // Nuevo campo
+  gumroad_link?: string;
 }
 
 export interface AdminOrder {
@@ -32,6 +32,19 @@ export interface AdminOrder {
   user_email?: string;
   first_name?: string;
   last_name?: string;
+  full_count?: number; // Para paginación
+}
+
+export interface UserData {
+  id: string;
+  email: string;
+  created_at: string;
+  last_sign_in_at: string;
+  first_name: string;
+  last_name: string;
+  total_orders: number;
+  total_spend: number;
+  full_count?: number; // Para paginación
 }
 
 export interface PromptItem {
