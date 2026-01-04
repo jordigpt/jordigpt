@@ -19,7 +19,11 @@ const Login = () => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // IMPORTANTE: Si es recuperación de contraseña, NO redirigir a account,
+      // el AuthListener global en App.tsx se encargará de mandar a /update-password.
+      if (event === "PASSWORD_RECOVERY") return;
+      
       setSession(session);
       if (session) navigate("/account");
     });
@@ -47,7 +51,7 @@ const Login = () => {
                  <Terminal className="w-8 h-8 text-neon" />
                </div>
                <h1 className="text-2xl font-bold tracking-tight">ACCESO AL SISTEMA</h1>
-               <p className="text-muted-foreground text-sm mt-2">Introduce tus credenciales de operador</p>
+               <p className="text-muted-foreground text-sm mt-2">Introduce tus credenciales</p>
             </div>
 
             {/* Form */}
@@ -55,6 +59,8 @@ const Login = () => {
               {!session ? (
                 <Auth
                   supabaseClient={supabase}
+                  // IMPORTANTE: Esto le dice a Supabase a dónde volver después del email
+                  redirectTo={window.location.origin} 
                   appearance={{
                     theme: ThemeSupa,
                     variables: {
