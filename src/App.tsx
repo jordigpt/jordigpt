@@ -27,6 +27,15 @@ const AuthListener = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // 1. Chequeo manual del hash (por si el evento de Supabase se dispara antes de montar)
+    const hash = window.location.hash;
+    if (hash && hash.includes("type=recovery")) {
+      console.log("Recovery hash detected, redirecting...");
+      navigate("/update-password");
+      return; // Stop here
+    }
+
+    // 2. Listener de eventos estándar de Supabase
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         navigate("/update-password");

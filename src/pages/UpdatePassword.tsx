@@ -4,9 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Lock, Loader2 } from "lucide-react";
+import { Lock, Loader2, ArrowLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
 const UpdatePassword = () => {
@@ -18,7 +18,7 @@ const UpdatePassword = () => {
     // Verificar si hay sesión (el link de recuperación loguea al usuario temporalmente)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
-        toast.error("Enlace inválido o expirado.");
+        toast.error("Enlace inválido o expirado. Por favor solicita uno nuevo.");
         navigate("/login");
       }
     });
@@ -81,6 +81,11 @@ const UpdatePassword = () => {
               </Button>
             </form>
           </CardContent>
+          <CardFooter className="flex justify-center border-t border-border pt-4">
+              <Button variant="link" className="text-muted-foreground text-xs" onClick={() => navigate("/account")}>
+                  <ArrowLeft className="w-3 h-3 mr-1" /> No quiero cambiarla, ir a mi cuenta
+              </Button>
+          </CardFooter>
         </Card>
       </div>
     </div>

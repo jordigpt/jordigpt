@@ -59,8 +59,9 @@ const Login = () => {
               {!session ? (
                 <Auth
                   supabaseClient={supabase}
-                  // IMPORTANTE: Esto le dice a Supabase a dónde volver después del email
-                  redirectTo={window.location.origin} 
+                  // CAMBIO CRÍTICO: Apuntamos directo a la página de update-password
+                  // Esto asegura que el link del email lleve al usuario al lugar correcto
+                  redirectTo={`${window.location.origin}/update-password`}
                   appearance={{
                     theme: ThemeSupa,
                     variables: {
