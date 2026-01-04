@@ -25,6 +25,8 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
         <div className="p-4">
           <Auth
             supabaseClient={supabase}
+            // CRÍTICO: Esto asegura que el link del email redirija a tu app correctamente
+            redirectTo={window.location.origin} 
             appearance={{
               theme: ThemeSupa,
               variables: {
@@ -69,7 +71,8 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
             }}
             providers={[]}
             theme="dark"
-            view="sign_up"
+            view="sign_in" // Por defecto en login
+            showLinks={true} // Asegura que se muestren los links de "Olvide pass" y "Registrarse"
             localization={{
                 variables: {
                   sign_in: {
@@ -83,6 +86,13 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
                     password_label: 'Contraseña',
                     button_label: 'CREAR CUENTA',
                     link_text: '¿No tienes cuenta? Regístrate',
+                  },
+                  forgotten_password: {
+                    link_text: '¿Olvidaste tu contraseña?',
+                    button_label: 'ENVIAR INSTRUCCIONES',
+                    loading_button_label: 'ENVIANDO...',
+                    email_label: 'Ingresa tu Correo Electrónico',
+                    confirmation_text: 'Revisa tu correo con el enlace de recuperación',
                   }
                 }
             }}
