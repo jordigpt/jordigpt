@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowRight, CheckCircle2, XCircle, Star, Loader2, Ban } from "lucide-react";
+import { ArrowRight, CheckCircle2, XCircle, Star, Loader2, Ban, Download } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -35,6 +35,7 @@ interface Product {
   sort_order?: number;
   is_out_of_stock?: boolean;
   gumroad_link?: string;
+  downloads_count?: number;
 }
 
 const Index = () => {
@@ -243,10 +244,18 @@ const Index = () => {
                                             {product.price_display || (product.price === 0 ? "GRATIS" : `$${product.price}`)}
                                         </span>
                                     </div>
-                                    {!product.is_free && (
-                                        <span className="text-[9px] md:text-[10px] text-muted-foreground font-medium hidden sm:inline-block">
-                                            {product.price_microcopy ? "Pago único" : "Acceso inmediato"}
-                                        </span>
+                                    
+                                    {/* DOWNLOADS COUNT DISPLAY */}
+                                    {product.downloads_count && product.downloads_count > 0 ? (
+                                       <span className="flex items-center gap-1 text-[9px] md:text-[10px] text-neon font-mono mt-1">
+                                          <Download className="w-3 h-3" /> {product.downloads_count} ventas
+                                       </span>
+                                    ) : (
+                                       !product.is_free && (
+                                          <span className="text-[9px] md:text-[10px] text-muted-foreground font-medium hidden sm:inline-block mt-1">
+                                              {product.price_microcopy ? "Pago único" : "Acceso inmediato"}
+                                          </span>
+                                       )
                                     )}
                                 </div>
                                 

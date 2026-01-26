@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Star, Download, ShoppingCart, Image as ImageIcon, Ban, Gift, ExternalLink } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck, Zap, ArrowRight, XCircle, CheckCircle2, Lock, Loader2, Star, Download, ShoppingCart, Image as ImageIcon, Ban, Gift, ExternalLink, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { AuthModal } from "@/components/AuthModal";
@@ -33,6 +33,7 @@ interface Product {
   image_type: string;
   is_out_of_stock: boolean;
   gumroad_link?: string;
+  downloads_count?: number;
 }
 
 const ProductDetail = () => {
@@ -324,13 +325,21 @@ const ProductDetail = () => {
           {/* RIGHT: COPY & ACTION (5 Cols) */}
           <div className="lg:col-span-5 flex flex-col">
             <div className="mb-8">
-               <div className="flex items-center gap-3 mb-4">
+               <div className="flex items-center gap-3 mb-4 flex-wrap">
                   {product.is_free ? (
                     <Badge className="bg-neon text-black hover:bg-neon border-none text-xs px-3 py-1 font-bold">REGALO EXCLUSIVO</Badge>
                   ) : (
                     <Badge variant="outline" className="text-neon border-neon/50 text-xs px-3 py-1 bg-neon/5 font-bold uppercase tracking-wider">Sistema Premium</Badge>
                   )}
                   {product.is_featured && <span className="flex items-center text-xs text-amber-400 font-bold"><Star className="w-3 h-3 mr-1 fill-current"/> TOP SELLER</span>}
+                  
+                  {/* DOWNLOADS COUNT BADGE */}
+                  {product.downloads_count && product.downloads_count > 10 && (
+                      <span className="flex items-center text-xs text-foreground font-medium bg-muted px-2 py-0.5 rounded-full border border-border">
+                          <Users className="w-3 h-3 mr-1.5" /> +{product.downloads_count} estudiantes
+                      </span>
+                  )}
+                  
                   {isOutOfStock && <Badge variant="destructive" className="uppercase">Ventas Cerradas</Badge>}
                </div>
                

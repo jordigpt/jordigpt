@@ -20,6 +20,7 @@ export interface Product {
   sort_order: number;
   is_out_of_stock: boolean;
   gumroad_link?: string;
+  downloads_count?: number;
 }
 
 export interface AdminOrder {
