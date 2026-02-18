@@ -1,4 +1,4 @@
-import { Users, Code, Rocket, Star, Zap, ExternalLink } from "lucide-react";
+import { Users, Code, Rocket, Star, Zap, ExternalLink, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const SkoolCommunity = () => {
@@ -92,63 +92,85 @@ export const SkoolCommunity = () => {
                            {/* Content Mockup - Scrollable area */}
                            <div className="mt-12 px-4 py-6 space-y-6 overflow-y-auto h-full scrollbar-hide">
                               
-                              {/* Banner Principal */}
-                              <div className="w-full aspect-video rounded-xl overflow-hidden border border-neutral-800 shadow-lg relative group">
-                                <img 
-                                    src="/images/community/jordigpt-builders.png" 
-                                    alt="JordiGPT Builders Community"
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80"></div>
-                                <div className="absolute bottom-3 left-3">
-                                    <div className="h-4 w-24 bg-neon/80 rounded mb-2"></div>
-                                    <div className="h-2 w-32 bg-white/20 rounded"></div>
+                              {/* Banner Principal - Clicable */}
+                              <a href="https://www.skool.com/jordigpt/about" target="_blank" rel="noopener noreferrer" className="block">
+                                <div className="w-full aspect-video rounded-xl overflow-hidden border border-neutral-800 shadow-lg relative group">
+                                  <img 
+                                      src="/images/community/jordigpt-builders.png" 
+                                      alt="JordiGPT Builders Community"
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80"></div>
+                                  <div className="absolute bottom-3 left-3">
+                                      <div className="h-4 w-24 bg-neon/80 rounded mb-2"></div>
+                                      <div className="h-2 w-32 bg-white/20 rounded"></div>
+                                  </div>
                                 </div>
-                              </div>
+                              </a>
                               
-                              {/* Grilla de Recursos */}
+                              {/* Grilla de Recursos - Clicables */}
                               <div className="grid grid-cols-2 gap-3">
-                                  <div className="aspect-[4/3] bg-neutral-900 rounded-lg border border-neutral-800 overflow-hidden relative group cursor-pointer hover:border-neon/30 transition-all">
-                                      <img src="/images/community/plan-1k.png" alt="Plan 1K" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                                      <div className="absolute bottom-2 left-2 right-2 h-1 bg-neon/50 rounded overflow-hidden">
-                                          <div className="h-full bg-neon w-3/4"></div>
-                                      </div>
-                                  </div>
+                                  {/* Link 1: Plan 1K */}
+                                  <a href="https://www.skool.com/jordigpt/about" target="_blank" rel="noopener noreferrer" className="block">
+                                    <div className="aspect-[4/3] bg-neutral-900 rounded-lg border border-neutral-800 overflow-hidden relative group cursor-pointer hover:border-neon/30 transition-all">
+                                        <img src="/images/community/plan-1k.png" alt="Plan 1K" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                        <div className="absolute bottom-2 left-2 right-2 h-1 bg-neon/50 rounded overflow-hidden">
+                                            <div className="h-full bg-neon w-3/4"></div>
+                                        </div>
+                                    </div>
+                                  </a>
                                   
-                                  <div className="aspect-[4/3] bg-neutral-900 rounded-lg border border-neutral-800 overflow-hidden relative group cursor-pointer hover:border-neon/30 transition-all">
-                                      <img src="/images/community/funnel-manychat.png" alt="Funnel Manychat" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                                  </div>
+                                  {/* Link 2: Funnel ManyChat */}
+                                  <a href="https://www.skool.com/jordigpt/about" target="_blank" rel="noopener noreferrer" className="block">
+                                    <div className="aspect-[4/3] bg-neutral-900 rounded-lg border border-neutral-800 overflow-hidden relative group cursor-pointer hover:border-neon/30 transition-all">
+                                        <img src="/images/community/funnel-manychat.png" alt="Funnel Manychat" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                    </div>
+                                  </a>
 
-                                  <div className="aspect-[4/3] bg-neutral-900 rounded-lg border border-neutral-800 overflow-hidden relative group cursor-pointer hover:border-neon/30 transition-all col-span-2">
-                                      <img src="/images/community/vibecoding.png" alt="Vibecoding Mastery" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-transparent transition-all">
-                                          <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur border border-white/20 flex items-center justify-center">
-                                              <div className="w-0 h-0 border-l-[10px] border-l-white border-y-[6px] border-y-transparent ml-1"></div>
-                                          </div>
+                                  {/* Link 3: Vibecoding */}
+                                  <a href="https://www.skool.com/jordigpt/about" target="_blank" rel="noopener noreferrer" className="col-span-2 block">
+                                    <div className="aspect-[4/3] bg-neutral-900 rounded-lg border border-neutral-800 overflow-hidden relative group cursor-pointer hover:border-neon/30 transition-all">
+                                        <img src="/images/community/vibecoding.png" alt="Vibecoding Mastery" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-transparent transition-all">
+                                            <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur border border-white/20 flex items-center justify-center">
+                                                <div className="w-0 h-0 border-l-[10px] border-l-white border-y-[6px] border-y-transparent ml-1"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                  </a>
+                              </div>
+
+                              {/* New Profile Card - Consultor IA */}
+                              <a href="https://www.skool.com/jordigpt/about" target="_blank" rel="noopener noreferrer" className="block mt-2">
+                                  <div className="p-3 bg-neutral-900 rounded-xl border border-neutral-800 flex items-center gap-3 hover:border-neon/30 transition-all cursor-pointer group shadow-lg">
+                                      <div className="w-12 h-12 rounded-full overflow-hidden border border-neon/30 shrink-0 shadow-[0_0_10px_rgba(212,232,58,0.2)]">
+                                          <img src="/images/community/jordi-consultor.png" alt="JordiGPT" className="w-full h-full object-cover" />
+                                      </div>
+                                      <div>
+                                          <h4 className="font-bold text-white text-sm group-hover:text-neon transition-colors flex items-center gap-1">
+                                              JordiGPT - Consultor IA 
+                                              <CheckCircle2 className="w-3 h-3 text-blue-500 fill-blue-500/20" />
+                                          </h4>
+                                          <p className="text-[10px] text-zinc-400 leading-snug mt-0.5">
+                                              IA para negocios | Consultoria 1:1 <br/>
+                                              <span className="text-zinc-500">Sistemas de monetización con IA</span>
+                                          </p>
                                       </div>
                                   </div>
-                              </div>
-
-                              {/* Loading State / Skeleton Mockup */}
-                              <div className="p-4 bg-neon/5 rounded-lg border border-neon/10 animate-pulse">
-                                  <div className="flex items-center gap-3">
-                                      <div className="w-8 h-8 rounded-full bg-neon/20"></div>
-                                      <div className="flex-1 h-3 bg-neon/10 rounded"></div>
-                                  </div>
-                                  <div className="mt-3 space-y-2">
-                                      <div className="h-2 w-full bg-neon/5 rounded"></div>
-                                      <div className="h-2 w-5/6 bg-neon/5 rounded"></div>
-                                      <div className="h-2 w-4/6 bg-neon/5 rounded"></div>
-                                  </div>
-                              </div>
+                              </a>
                            </div>
 
-                           {/* Floating Elements */}
+                           {/* Floating Elements (Pill Button) - Clicable */}
                            <div className="absolute bottom-6 right-6 z-30">
-                               <div className="bg-black border border-neon/50 text-neon px-4 py-2 rounded-full text-xs font-bold shadow-[0_0_20px_rgba(212,232,58,0.2)] flex items-center gap-2 animate-bounce">
-                                   <div className="w-2 h-2 bg-neon rounded-full"></div>
+                               <a 
+                                 href="https://www.skool.com/jordigpt/about" 
+                                 target="_blank" 
+                                 rel="noopener noreferrer"
+                                 className="bg-black border border-neon/50 text-neon px-4 py-2 rounded-full text-xs font-bold shadow-[0_0_20px_rgba(212,232,58,0.2)] flex items-center gap-2 animate-bounce hover:bg-neon hover:text-black transition-colors"
+                               >
+                                   <div className="w-2 h-2 bg-neon rounded-full current-color"></div>
                                    ÚNETE AHORA
-                               </div>
+                               </a>
                            </div>
                       </div>
                   </div>
