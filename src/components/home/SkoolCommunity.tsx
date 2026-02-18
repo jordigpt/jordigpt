@@ -96,7 +96,7 @@ export const SkoolCommunity = () => {
                                   <div className="aspect-video bg-neutral-900 rounded border border-neutral-800"></div>
                                   <div className="aspect-video bg-neutral-900 rounded border border-neutral-800"></div>
                                   <div className="aspect-video bg-neutral-900 rounded border border-neutral-800"></div>
-                                  <div className="aspect-video bg-neutral-900 rounded border border-neutral-800 flex items-center justify-center text-neon text-xs font-mono">+120 Clases</div>
+                                  <div className="aspect-video bg-neutral-900 rounded border border-neutral-800 flex items-center justify-center text-neon text-xs font-mono text-center px-1">NETWORKING TOP 1%</div>
                               </div>
 
                               <div className="mt-8 p-4 bg-neon/10 rounded border border-neon/20">

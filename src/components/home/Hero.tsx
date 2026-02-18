@@ -23,14 +23,10 @@ export const Hero = () => {
           <span className="text-3xl md:text-6xl text-muted-foreground">MIENTRAS OTROS DUDAN</span>
         </h1>
         
-        <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-4 leading-relaxed">
+        <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
           Guías y sistemas IA probados para que tus ideas y habilidades se vuelvan ingresos reales.
         </p>
 
-        <p className="text-sm font-medium text-foreground/80 mb-10">
-          Guías desde USD 9.99 · Pago único · Acceso inmediato y de por vida
-        </p>
-        
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
           <a href="#products">
             <PillButton>
@@ -59,7 +55,7 @@ export const Hero = () => {
         
         <div className="flex flex-wrap justify-center gap-3 mt-8">
           <span className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-[10px] border border-border">Procesos paso a paso</span>
-          <span className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-[10px] border border-border">Actualizado 2025</span>
+          <span className="bg-muted/50 text-muted-foreground px-2 py-1 rounded text-[10px] border border-border">Actualizado 2026</span>
         </div>
       </div>
     </section>
