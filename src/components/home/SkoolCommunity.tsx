@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 
 export const SkoolCommunity = () => {
   return (
-    <section className="py-24 border-y border-neon/20 bg-black relative overflow-hidden group">
+    <section className="py-24 border-y border-neon/20 bg-zinc-50 dark:bg-black relative overflow-hidden group transition-colors duration-500">
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 dark:opacity-20 mix-blend-soft-light"></div>
       <div className="absolute right-0 top-0 w-1/2 h-full bg-neon/5 blur-[120px] rounded-full pointer-events-none"></div>
       
       <div className="container mx-auto px-4 relative z-10">
@@ -13,46 +13,46 @@ export const SkoolCommunity = () => {
               
               {/* Content */}
               <div className="flex-1 space-y-8">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon text-black text-xs font-black tracking-wider uppercase">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon text-black text-xs font-black tracking-wider uppercase shadow-sm">
                       <Users className="w-3 h-3" /> Comunidad Privada
                   </div>
                   
                   <div>
-                      <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9] mb-4">
-                          JordiGPT <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon to-white">Builders</span>
+                      <h2 className="text-4xl md:text-6xl font-black text-zinc-900 dark:text-white tracking-tighter uppercase leading-[0.9] mb-4">
+                          JordiGPT <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon to-zinc-900 dark:to-white">Builders</span>
                       </h2>
-                      <p className="text-xl text-gray-400 font-light max-w-xl">
+                      <p className="text-xl text-zinc-600 dark:text-gray-400 font-light max-w-xl">
                           El entorno donde la tecnología se encuentra con el negocio real. Deja de construir solo.
                       </p>
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-6">
-                      <div className="flex gap-4 items-start p-4 rounded-lg bg-white/5 border border-white/10 hover:border-neon/30 transition-colors">
+                      <div className="flex gap-4 items-start p-4 rounded-xl bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-neon/50 dark:hover:border-neon/30 hover:shadow-lg transition-all duration-300">
                           <Code className="w-6 h-6 text-neon shrink-0" />
                           <div>
-                              <h4 className="font-bold text-white mb-1">AI-Vibe Coding</h4>
-                              <p className="text-sm text-gray-400">Construye software y MVPs sin ser desarrollador senior.</p>
+                              <h4 className="font-bold text-zinc-900 dark:text-white mb-1">AI-Vibe Coding</h4>
+                              <p className="text-sm text-zinc-600 dark:text-gray-400">Construye software y MVPs sin ser desarrollador senior.</p>
                           </div>
                       </div>
-                      <div className="flex gap-4 items-start p-4 rounded-lg bg-white/5 border border-white/10 hover:border-neon/30 transition-colors">
+                      <div className="flex gap-4 items-start p-4 rounded-xl bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-neon/50 dark:hover:border-neon/30 hover:shadow-lg transition-all duration-300">
                           <Rocket className="w-6 h-6 text-neon shrink-0" />
                           <div>
-                              <h4 className="font-bold text-white mb-1">Negocios Digitales</h4>
-                              <p className="text-sm text-gray-400">Estrategias de monetización y validación de ofertas.</p>
+                              <h4 className="font-bold text-zinc-900 dark:text-white mb-1">Negocios Digitales</h4>
+                              <p className="text-sm text-zinc-600 dark:text-gray-400">Estrategias de monetización y validación de ofertas.</p>
                           </div>
                       </div>
-                      <div className="flex gap-4 items-start p-4 rounded-lg bg-white/5 border border-white/10 hover:border-neon/30 transition-colors">
+                      <div className="flex gap-4 items-start p-4 rounded-xl bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-neon/50 dark:hover:border-neon/30 hover:shadow-lg transition-all duration-300">
                           <Star className="w-6 h-6 text-neon shrink-0" />
                           <div>
-                              <h4 className="font-bold text-white mb-1">Marca Personal Auténtica</h4>
-                              <p className="text-sm text-gray-400">Diferenciación radical en un mercado saturado.</p>
+                              <h4 className="font-bold text-zinc-900 dark:text-white mb-1">Marca Personal Auténtica</h4>
+                              <p className="text-sm text-zinc-600 dark:text-gray-400">Diferenciación radical en un mercado saturado.</p>
                           </div>
                       </div>
-                      <div className="flex gap-4 items-start p-4 rounded-lg bg-white/5 border border-white/10 hover:border-neon/30 transition-colors">
+                      <div className="flex gap-4 items-start p-4 rounded-xl bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:border-neon/50 dark:hover:border-neon/30 hover:shadow-lg transition-all duration-300">
                           <Zap className="w-6 h-6 text-neon shrink-0" />
                           <div>
-                              <h4 className="font-bold text-white mb-1">Distribución Viral</h4>
-                              <p className="text-sm text-gray-400">Contenido orgánico de nicho que convierte.</p>
+                              <h4 className="font-bold text-zinc-900 dark:text-white mb-1">Distribución Viral</h4>
+                              <p className="text-sm text-zinc-600 dark:text-gray-400">Contenido orgánico de nicho que convierte.</p>
                           </div>
                       </div>
                   </div>
@@ -63,7 +63,7 @@ export const SkoolCommunity = () => {
                       rel="noopener noreferrer"
                       className="inline-block w-full sm:w-auto"
                   >
-                      <Button className="w-full sm:w-auto bg-neon text-black hover:bg-neon/90 font-bold text-lg h-14 px-10 shadow-[0_0_20px_rgba(212,232,58,0.4)] hover:shadow-[0_0_40px_rgba(212,232,58,0.6)] transition-all uppercase">
+                      <Button className="w-full sm:w-auto bg-zinc-900 dark:bg-neon text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-neon/90 font-bold text-lg h-14 px-10 shadow-xl dark:shadow-[0_0_20px_rgba(212,232,58,0.4)] hover:shadow-2xl hover:-translate-y-1 transition-all uppercase">
                           UNIRSE AHORA
                           <ExternalLink className="ml-2 w-5 h-5" />
                       </Button>
