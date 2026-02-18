@@ -96,7 +96,18 @@ export const SkoolCommunity = () => {
                                   <div className="aspect-video bg-neutral-900 rounded border border-neutral-800"></div>
                                   <div className="aspect-video bg-neutral-900 rounded border border-neutral-800"></div>
                                   <div className="aspect-video bg-neutral-900 rounded border border-neutral-800"></div>
-                                  <div className="aspect-video bg-neutral-900 rounded border border-neutral-800 flex items-center justify-center text-neon text-xs font-mono text-center px-1">NETWORKING TOP 1%</div>
+                                  
+                                  {/* IMAGEN AÑADIDA AQUÍ: Reemplazamos el texto con una imagen real */}
+                                  <div className="aspect-video rounded border border-neutral-800 overflow-hidden relative group">
+                                      <img 
+                                        src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=400&q=80" 
+                                        alt="Networking"
+                                        className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
+                                      />
+                                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-1 text-center">
+                                          <span className="text-[8px] font-mono text-neon font-bold">NETWORKING TOP 1%</span>
+                                      </div>
+                                  </div>
                               </div>
 
                               <div className="mt-8 p-4 bg-neon/10 rounded border border-neon/20">

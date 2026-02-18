@@ -28,27 +28,27 @@ export const Hero = () => {
         </p>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-          <a href="#products">
-            <PillButton>
-              <span className="flex items-center justify-center">
-                RECURSOS GRATUITOS
-                <ArrowRight className="ml-3 h-5 w-5" />
-              </span>
-            </PillButton>
-          </a>
-          
           <a 
             href="https://www.skool.com/jordigpt/about" 
             target="_blank" 
             rel="noopener noreferrer"
             className="w-full md:w-auto"
           >
+            <PillButton className="w-full md:w-auto">
+              <span className="flex items-center justify-center">
+                <Users className="mr-2 h-5 w-5" />
+                COMUNIDAD SKOOL
+              </span>
+            </PillButton>
+          </a>
+
+          <a href="#products">
             <Button 
               variant="outline" 
               className="w-full md:w-auto h-[58px] rounded-full px-8 border-neon/30 text-neon hover:bg-neon hover:text-black font-bold tracking-wide uppercase text-sm transition-all shadow-[0_0_15px_rgba(212,232,58,0.05)] hover:shadow-[0_0_25px_rgba(212,232,58,0.3)] bg-black/50 backdrop-blur-sm"
             >
-              <Users className="mr-2 h-5 w-5" />
-              COMUNIDAD SKOOL
+              RECURSOS GRATUITOS
+              <ArrowRight className="ml-3 h-5 w-5" />
             </Button>
           </a>
         </div>
