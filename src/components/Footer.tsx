@@ -10,7 +10,7 @@ const Footer = () => {
           Alguien usando inteligencia artificial te va a reemplazar.
         </p>
         <div className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} JordiGPT System. Todos los derechos reservados.
+          © 2026 JordiGPT Systems. Todos los derechos reservados.
         </div>
       </div>
     </footer>
