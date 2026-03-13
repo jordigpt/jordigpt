@@ -18,6 +18,8 @@ import Account from "./pages/Account";
 import PurchasedProduct from "./pages/PurchasedProduct";
 import NotFound from "./pages/NotFound";
 import UpdatePassword from "./pages/UpdatePassword";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
@@ -70,6 +72,10 @@ const App = () => (
                         <Route path="/payment/success" element={<PaymentResult />} />
                         <Route path="/payment/failure" element={<PaymentResult />} />
                         <Route path="/payment/pending" element={<PaymentResult />} />
+
+                        {/* Páginas Legales */}
+                        <Route path="/terminos" element={<Terms />} />
+                        <Route path="/privacidad" element={<Privacy />} />
 
                         <Route path="/:slug" element={<ProductDetail />} />
                         <Route path="/product/:id" element={<ProductDetail />} />

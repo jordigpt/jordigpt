@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const Footer = () => {
   return (
     <footer className="bg-background border-t border-border py-12">
@@ -9,8 +11,18 @@ const Footer = () => {
           La inteligencia artificial no va a reemplazarte. <br/>
           Alguien usando inteligencia artificial te va a reemplazar.
         </p>
+        
+        <div className="flex flex-wrap justify-center gap-6 mb-6 text-sm font-medium">
+          <Link to="/terminos" className="text-muted-foreground hover:text-neon transition-colors">
+            Términos y Condiciones
+          </Link>
+          <Link to="/privacidad" className="text-muted-foreground hover:text-neon transition-colors">
+            Políticas de Privacidad
+          </Link>
+        </div>
+
         <div className="text-xs text-muted-foreground">
-          © 2026 JordiGPT Systems. Todos los derechos reservados.
+          © {new Date().getFullYear()} JordiGPT LLC. Todos los derechos reservados.
         </div>
       </div>
     </footer>
