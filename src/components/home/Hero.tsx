@@ -1,6 +1,5 @@
-import { ArrowRight, Users } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PillButton } from "@/components/PillButton";
 
 export const Hero = () => {
   return (
@@ -28,20 +27,6 @@ export const Hero = () => {
         </p>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-          <a 
-            href="https://www.skool.com/jordigpt/about" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="w-full md:w-auto"
-          >
-            <PillButton className="w-full md:w-auto">
-              <span className="flex items-center justify-center">
-                <Users className="mr-2 h-5 w-5" />
-                COMUNIDAD SKOOL
-              </span>
-            </PillButton>
-          </a>
-
           <a href="#products">
             <Button 
               variant="outline" 

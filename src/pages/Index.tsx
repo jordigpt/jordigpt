@@ -8,7 +8,6 @@ import { Product } from "@/types/admin";
 import { Hero } from "@/components/home/Hero";
 import { AuthorityBanner } from "@/components/home/AuthorityBanner";
 import { AboutMe } from "@/components/home/AboutMe";
-import { SkoolCommunity } from "@/components/home/SkoolCommunity";
 import { ProductsGrid } from "@/components/home/ProductsGrid";
 import { ComparisonSection } from "@/components/home/ComparisonSection";
 import { FAQSection } from "@/components/home/FAQSection";
@@ -41,7 +40,6 @@ const Index = () => {
       <Hero />
       <AuthorityBanner />
       <AboutMe />
-      <SkoolCommunity />
       <ProductsGrid products={products} loading={loading} />
       <ComparisonSection />
       <FAQSection />
